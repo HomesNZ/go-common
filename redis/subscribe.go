@@ -10,7 +10,6 @@ import (
 // Subscribe will block forever, so a goroutine is recommended
 func (c Cache) Subscribe(subscription string, handleResponse func(interface{})) {
 	conn := c.Conn()
-	defer conn.Close()
 
 	_, err := conn.Do("PSUBSCRIBE", subscription)
 	if err != nil {
