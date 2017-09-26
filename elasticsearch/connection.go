@@ -30,6 +30,7 @@ func initConn() {
 		elastic.SetURL(strings.Split(env.MustGetString("ELASTICSEARCH_URLS"), ";")...),
 		elastic.SetHealthcheck(env.GetBool("ELASTICSEARCH_HEALTH_CHECK", true)),
 		elastic.SetSniff(env.GetBool("ELASTICSEARCH_SNIFF", false)), // causes issues within AWS, so off by default
+		elastic.SetGzip(env.GetBool("ELASTICSEARCH_GZIP", true)),
 	}
 	if awsAuth() {
 		options = append(options, elastic.SetPrepareRequest(func(req *http.Request) {
