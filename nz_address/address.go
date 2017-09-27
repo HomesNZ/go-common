@@ -58,20 +58,23 @@ func (a Address) Display() string {
 
 	var identifierStreet string
 	street := titleCase(a.Street())
+	if a.UnitIdentifier != "" && a.BuildingName == "" {
+		if a.UnitType != "" {
+			identifierStreet += titleCase(a.UnitType) + " "
+		}
+		identifierStreet += strings.ToUpper(a.UnitIdentifier)
+	}
 	if a.StreetNumber != 0 {
-		if a.UnitIdentifier != "" && a.BuildingName == "" {
-			if a.UnitType != "" {
-				identifierStreet += titleCase(a.UnitType) + " "
-			}
-			identifierStreet += strings.ToUpper(a.UnitIdentifier) + "/"
+		if identifierStreet != "" {
+			identifierStreet += "/"
 		}
 		identifierStreet += strconv.Itoa(a.StreetNumber) + strings.ToUpper(a.StreetAlpha)
 		if a.StreetNumberHigh != 0 {
 			identifierStreet += "-" + strconv.Itoa(a.StreetNumberHigh)
 		}
-		if street != "" {
-			identifierStreet += " "
-		}
+	}
+	if identifierStreet != "" && street != "" {
+		identifierStreet += " "
 	}
 	identifierStreet += street
 	if identifierStreet != "" {

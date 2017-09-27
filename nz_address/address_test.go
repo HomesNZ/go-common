@@ -22,6 +22,27 @@ var _ = Describe("Address", func() {
 			"123/5A-10",
 		),
 		Entry(
+			"all identifiers except street number",
+			Address{
+				UnitIdentifier:   "123",
+				StreetAlpha:      "A",
+				StreetNumberHigh: 10,
+			},
+			"123",
+		),
+		Entry(
+			"all identifiers except street number, street name, suburb",
+			Address{
+				UnitIdentifier:   "123",
+				StreetAlpha:      "A",
+				StreetNumberHigh: 10,
+				StreetName:       "Cambridge",
+				StreetType:       "Terrace",
+				Suburb:           "Wellington",
+			},
+			"123 Cambridge Terrace, Wellington",
+		),
+		Entry(
 			"street number range",
 			Address{
 				StreetNumber:     5,
