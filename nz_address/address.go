@@ -78,14 +78,17 @@ func (a Address) Display() string {
 		address = append(address, identifierStreet)
 	}
 
-	if a.Suburb != "" {
-		address = append(address, titleCase(a.Suburb))
+	suburb := titleCase(a.Suburb)
+	city := titleCase(a.City)
+
+	if suburb != "" && city != suburb {
+		address = append(address, suburb)
 	}
 	if a.RDNumber != "" {
 		address = append(address, "RD "+strings.ToUpper(a.RDNumber))
 	}
-	if a.City != "" {
-		address = append(address, titleCase(a.City))
+	if city != "" {
+		address = append(address, city)
 	}
 	return strings.Trim(strings.Join(address, ", "), " ")
 }

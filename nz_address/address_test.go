@@ -80,6 +80,14 @@ var _ = Describe("Address", func() {
 			"Brooklyn, Wellington",
 		),
 		Entry(
+			"duplicate city and suburb",
+			Address{
+				Suburb: "Wellington",
+				City:   "Wellington",
+			},
+			"Wellington",
+		),
+		Entry(
 			"street name and direction without type",
 			Address{
 				StreetName:      "State Highway 2",
@@ -104,6 +112,24 @@ var _ = Describe("Address", func() {
 				Postcode:         1234,
 			},
 			"Unit 5 Homes House, 123B-134 Cambridge Terrace, Brooklyn, RD 3A, Wellington",
+		),
+		Entry(
+			"full address with duplicate suburb/city",
+			Address{
+				BuildingName:     "Homes House",
+				UnitType:         "Unit",
+				UnitIdentifier:   "5",
+				StreetNumber:     123,
+				StreetNumberHigh: 134,
+				StreetAlpha:      "B",
+				StreetName:       "CAMBRIDGE",
+				StreetType:       "TERRACE",
+				RDNumber:         "3a",
+				Suburb:           "WELLINGTON",
+				City:             "WELLINGTON",
+				Postcode:         1234,
+			},
+			"Unit 5 Homes House, 123B-134 Cambridge Terrace, RD 3A, Wellington",
 		),
 	)
 	Describe("DisplayWithPostcode", func() {
