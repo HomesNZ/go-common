@@ -110,11 +110,12 @@ func (c Client) StartUpload(name string) (*Upload, error) {
 
 // UploadPart uploads a file to the UploadURI given by Upload.
 // Max file size is 5GB per part
-func (c Client) UploadPart(u *Upload, r io.Reader) error {
+func (c Client) UploadPart(u *Upload, r io.Reader, contentLength int64) error {
 	req, err := http.NewRequest(http.MethodPut, u.UploadURI, r)
 	if err != nil {
 		return err
 	}
+	req.ContentLength = contentLength
 	res, err := c.doRequest(req, nil)
 	if err != nil {
 		return err
