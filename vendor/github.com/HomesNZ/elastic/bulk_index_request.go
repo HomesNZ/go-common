@@ -10,24 +10,24 @@ import (
 	"strings"
 )
 
-// BulkIndexRequest is a bulk request to add a document to Elasticsearch.
+// BulkIndexRequest is a request to add a document to Elasticsearch.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 type BulkIndexRequest struct {
 	BulkableRequest
-	index       string
-	typ         string
-	id          string
-	opType      string
-	routing     string
-	parent      string
-	timestamp   string
-	ttl         int64
-	refresh     *bool
-	version     int64  // default is MATCH_ANY
-	versionType string // default is "internal"
-	doc         interface{}
+	index           string
+	typ             string
+	id              string
+	opType          string
+	routing         string
+	parent          string
+	version         int64  // default is MATCH_ANY
+	versionType     string // default is "internal"
+	doc             interface{}
+	pipeline        string
+	retryOnConflict *int
+	ttl             string
 
 	source []string
 }
@@ -65,7 +65,7 @@ func (r *BulkIndexRequest) Id(id string) *BulkIndexRequest {
 
 // OpType specifies if this request should follow create-only or upsert
 // behavior. This follows the OpType of the standard document index API.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#operation-type
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-index_.html#operation-type
 // for details.
 func (r *BulkIndexRequest) OpType(opType string) *BulkIndexRequest {
 	r.opType = opType
@@ -87,34 +87,6 @@ func (r *BulkIndexRequest) Parent(parent string) *BulkIndexRequest {
 	return r
 }
 
-// Timestamp can be used to index a document with a timestamp.
-// This is deprecated as of 2.0.0-beta2; you should use a normal date field
-// and set its value explicitly.
-func (r *BulkIndexRequest) Timestamp(timestamp string) *BulkIndexRequest {
-	r.timestamp = timestamp
-	r.source = nil
-	return r
-}
-
-// Ttl (time to live) sets an expiration date for the document. Expired
-// documents will be expunged automatically.
-// This is deprecated as of 2.0.0-beta2 and will be replaced by a different
-// implementation in a future version.
-func (r *BulkIndexRequest) Ttl(ttl int64) *BulkIndexRequest {
-	r.ttl = ttl
-	r.source = nil
-	return r
-}
-
-// Refresh indicates whether to update the shards immediately after
-// the request has been processed. Newly added documents will appear
-// in search immediately at the cost of slower bulk performance.
-func (r *BulkIndexRequest) Refresh(refresh bool) *BulkIndexRequest {
-	r.refresh = &refresh
-	r.source = nil
-	return r
-}
-
 // Version indicates the version of the document as part of an optimistic
 // concurrency model.
 func (r *BulkIndexRequest) Version(version int64) *BulkIndexRequest {
@@ -126,7 +98,7 @@ func (r *BulkIndexRequest) Version(version int64) *BulkIndexRequest {
 // VersionType specifies how versions are created. It can be e.g. internal,
 // external, external_gte, or force.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#index-versioning
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-index_.html#index-versioning
 // for details.
 func (r *BulkIndexRequest) VersionType(versionType string) *BulkIndexRequest {
 	r.versionType = versionType
@@ -137,6 +109,27 @@ func (r *BulkIndexRequest) VersionType(versionType string) *BulkIndexRequest {
 // Doc specifies the document to index.
 func (r *BulkIndexRequest) Doc(doc interface{}) *BulkIndexRequest {
 	r.doc = doc
+	r.source = nil
+	return r
+}
+
+// RetryOnConflict specifies how often to retry in case of a version conflict.
+func (r *BulkIndexRequest) RetryOnConflict(retryOnConflict int) *BulkIndexRequest {
+	r.retryOnConflict = &retryOnConflict
+	r.source = nil
+	return r
+}
+
+// TTL is an expiration time for the document.
+func (r *BulkIndexRequest) TTL(ttl string) *BulkIndexRequest {
+	r.ttl = ttl
+	r.source = nil
+	return r
+}
+
+// Pipeline to use while processing the request.
+func (r *BulkIndexRequest) Pipeline(pipeline string) *BulkIndexRequest {
+	r.pipeline = pipeline
 	r.source = nil
 	return r
 }
@@ -153,7 +146,7 @@ func (r *BulkIndexRequest) String() string {
 
 // Source returns the on-wire representation of the index request,
 // split into an action-and-meta-data line and an (optional) source line.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 func (r *BulkIndexRequest) Source() ([]string, error) {
 	// { "index" : { "_index" : "test", "_type" : "type1", "_id" : "1" } }
@@ -183,20 +176,20 @@ func (r *BulkIndexRequest) Source() ([]string, error) {
 	if r.parent != "" {
 		indexCommand["_parent"] = r.parent
 	}
-	if r.timestamp != "" {
-		indexCommand["_timestamp"] = r.timestamp
-	}
-	if r.ttl > 0 {
-		indexCommand["_ttl"] = r.ttl
-	}
 	if r.version > 0 {
 		indexCommand["_version"] = r.version
 	}
 	if r.versionType != "" {
 		indexCommand["_version_type"] = r.versionType
 	}
-	if r.refresh != nil {
-		indexCommand["refresh"] = *r.refresh
+	if r.retryOnConflict != nil {
+		indexCommand["_retry_on_conflict"] = *r.retryOnConflict
+	}
+	if r.ttl != "" {
+		indexCommand["_ttl"] = r.ttl
+	}
+	if r.pipeline != "" {
+		indexCommand["pipeline"] = r.pipeline
 	}
 	command[r.opType] = indexCommand
 	line, err := json.Marshal(command)

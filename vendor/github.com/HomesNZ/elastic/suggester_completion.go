@@ -1,4 +1,4 @@
-// Copyright 2012-2015 Oliver Eilhard. All rights reserved.
+// Copyright 2012-present Oliver Eilhard. All rights reserved.
 // Use of this source code is governed by a MIT-license.
 // See http://olivere.mit-license.org/license.txt for details.
 
@@ -7,7 +7,7 @@ package elastic
 import "errors"
 
 // CompletionSuggester is a fast suggester for e.g. type-ahead completion.
-// See http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-suggesters-completion.html
 // for more details.
 type CompletionSuggester struct {
 	Suggester
@@ -76,7 +76,7 @@ type completionSuggesterRequest struct {
 	Completion interface{} `json:"completion"`
 }
 
-// Source creates the JSON structure for the completion suggester.
+// Creates the source for the completion suggester.
 func (q *CompletionSuggester) Source(includeName bool) (interface{}, error) {
 	cs := &completionSuggesterRequest{}
 
@@ -123,7 +123,7 @@ func (q *CompletionSuggester) Source(includeName bool) (interface{}, error) {
 				ctxq[k] = v
 			}
 		}
-		suggester["context"] = ctxq
+		suggester["contexts"] = ctxq
 	}
 
 	// TODO(oe) Add completion-suggester specific parameters here

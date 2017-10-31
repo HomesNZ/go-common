@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-// Bulk request to update a document in Elasticsearch.
+// BulkUpdateRequest is a request to update a document in Elasticsearch.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 type BulkUpdateRequest struct {
 	BulkableRequest
@@ -23,16 +23,14 @@ type BulkUpdateRequest struct {
 	routing         string
 	parent          string
 	script          *Script
+	scriptedUpsert  *bool
 	version         int64  // default is MATCH_ANY
 	versionType     string // default is "internal"
 	retryOnConflict *int
-	refresh         *bool
 	upsert          interface{}
 	docAsUpsert     *bool
 	detectNoop      *bool
 	doc             interface{}
-	ttl             int64
-	timestamp       string
 
 	source []string
 }
@@ -80,11 +78,21 @@ func (r *BulkUpdateRequest) Parent(parent string) *BulkUpdateRequest {
 }
 
 // Script specifies an update script.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/2.x/docs-bulk.html#bulk-update
-// and https://www.elastic.co/guide/en/elasticsearch/reference/2.x/modules-scripting.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html#bulk-update
+// and https://www.elastic.co/guide/en/elasticsearch/reference/5.2/modules-scripting.html
 // for details.
 func (r *BulkUpdateRequest) Script(script *Script) *BulkUpdateRequest {
 	r.script = script
+	r.source = nil
+	return r
+}
+
+// ScripedUpsert specifies if your script will run regardless of
+// whether the document exists or not.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-update.html#_literal_scripted_upsert_literal
+func (r *BulkUpdateRequest) ScriptedUpsert(upsert bool) *BulkUpdateRequest {
+	r.scriptedUpsert = &upsert
 	r.source = nil
 	return r
 }
@@ -112,15 +120,6 @@ func (r *BulkUpdateRequest) VersionType(versionType string) *BulkUpdateRequest {
 	return r
 }
 
-// Refresh indicates whether to update the shards immediately after
-// the request has been processed. Updated documents will appear
-// in search immediately at the cost of slower bulk performance.
-func (r *BulkUpdateRequest) Refresh(refresh bool) *BulkUpdateRequest {
-	r.refresh = &refresh
-	r.source = nil
-	return r
-}
-
 // Doc specifies the updated document.
 func (r *BulkUpdateRequest) Doc(doc interface{}) *BulkUpdateRequest {
 	r.doc = doc
@@ -131,7 +130,7 @@ func (r *BulkUpdateRequest) Doc(doc interface{}) *BulkUpdateRequest {
 // DocAsUpsert indicates whether the contents of Doc should be used as
 // the Upsert value.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/2.x/docs-update.html#_literal_doc_as_upsert_literal
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-update.html#_literal_doc_as_upsert_literal
 // for details.
 func (r *BulkUpdateRequest) DocAsUpsert(docAsUpsert bool) *BulkUpdateRequest {
 	r.docAsUpsert = &docAsUpsert
@@ -152,22 +151,6 @@ func (r *BulkUpdateRequest) DetectNoop(detectNoop bool) *BulkUpdateRequest {
 // create if the original document does not exist.
 func (r *BulkUpdateRequest) Upsert(doc interface{}) *BulkUpdateRequest {
 	r.upsert = doc
-	r.source = nil
-	return r
-}
-
-// Ttl specifies the time to live, and optional expiry time.
-// This is deprecated as of 2.0.0-beta2.
-func (r *BulkUpdateRequest) Ttl(ttl int64) *BulkUpdateRequest {
-	r.ttl = ttl
-	r.source = nil
-	return r
-}
-
-// Timestamp specifies a timestamp for the document.
-// This is deprecated as of 2.0.0-beta2.
-func (r *BulkUpdateRequest) Timestamp(timestamp string) *BulkUpdateRequest {
-	r.timestamp = timestamp
 	r.source = nil
 	return r
 }
@@ -203,7 +186,7 @@ func (r *BulkUpdateRequest) getSourceAsString(data interface{}) (string, error) 
 
 // Source returns the on-wire representation of the update request,
 // split into an action-and-meta-data line and an (optional) source line.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 func (r *BulkUpdateRequest) Source() ([]string, error) {
 	// { "update" : { "_index" : "test", "_type" : "type1", "_id" : "1", ... } }
@@ -236,20 +219,11 @@ func (r *BulkUpdateRequest) Source() ([]string, error) {
 	if r.parent != "" {
 		updateCommand["_parent"] = r.parent
 	}
-	if r.timestamp != "" {
-		updateCommand["_timestamp"] = r.timestamp
-	}
-	if r.ttl > 0 {
-		updateCommand["_ttl"] = r.ttl
-	}
 	if r.version > 0 {
 		updateCommand["_version"] = r.version
 	}
 	if r.versionType != "" {
 		updateCommand["_version_type"] = r.versionType
-	}
-	if r.refresh != nil {
-		updateCommand["refresh"] = *r.refresh
 	}
 	if r.retryOnConflict != nil {
 		updateCommand["_retry_on_conflict"] = *r.retryOnConflict
@@ -271,6 +245,9 @@ func (r *BulkUpdateRequest) Source() ([]string, error) {
 	}
 	if r.upsert != nil {
 		source["upsert"] = r.upsert
+	}
+	if r.scriptedUpsert != nil {
+		source["scripted_upsert"] = *r.scriptedUpsert
 	}
 	if r.doc != nil {
 		// {"doc":{...}}

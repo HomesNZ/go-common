@@ -5,18 +5,17 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
 
-	"golang.org/x/net/context"
-
-	"gopkg.in/olivere/elastic.v3/uritemplates"
+	"github.com/HomesNZ/elastic/uritemplates"
 )
 
 // ClusterStateService allows to get a comprehensive state information of the whole cluster.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-state.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/cluster-state.html
 // for details.
 type ClusterStateService struct {
 	client            *Client
@@ -70,7 +69,7 @@ func (s *ClusterStateService) ExpandWildcards(expandWildcards string) *ClusterSt
 	return s
 }
 
-// FlatSettings indicates whether to return settings in flat format (default: false).
+// FlatSettings, when set, returns settings in flat format (default: false).
 func (s *ClusterStateService) FlatSettings(flatSettings bool) *ClusterStateService {
 	s.flatSettings = &flatSettings
 	return s
@@ -153,12 +152,7 @@ func (s *ClusterStateService) Validate() error {
 }
 
 // Do executes the operation.
-func (s *ClusterStateService) Do() (*ClusterStateResponse, error) {
-	return s.DoC(nil)
-}
-
-// DoC executes the operation.
-func (s *ClusterStateService) DoC(ctx context.Context) (*ClusterStateResponse, error) {
+func (s *ClusterStateService) Do(ctx context.Context) (*ClusterStateResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
 		return nil, err
@@ -171,7 +165,7 @@ func (s *ClusterStateService) DoC(ctx context.Context) (*ClusterStateResponse, e
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequestC(ctx, "GET", path, params, nil)
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +259,7 @@ type shardRouting struct {
 	RelocatingNode string          `json:"relocating_node"`
 	Shard          int             `json:"shard"`
 	Index          string          `json:"index"`
-	Version        int64           `json:"state"`
+	Version        int64           `json:"version"`
 	RestoreSource  *RestoreSource  `json:"restore_source"`
 	AllocationId   *allocationId   `json:"allocation_id"`
 	UnassignedInfo *unassignedInfo `json:"unassigned_info"`

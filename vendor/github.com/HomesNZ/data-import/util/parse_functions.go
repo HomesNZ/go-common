@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"math"
 )
 
 var (
@@ -66,7 +67,7 @@ func ToSquareMeters(val float64, unit string) (float64, error) {
 		return 0, fmt.Errorf("Cannot convert to square meters, unsupported unit `%s`", unit)
 	}
 
-	return s, nil
+	return math.Ceil(s - 0.5), nil
 }
 
 // GetBuildingAgeFromCategoryCode retrieves a CategoryCode string, eg: RD201A, and returns the '201' bit, which is the
