@@ -1,9 +1,9 @@
 package bugsnag
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/HomesNZ/go-common/version"
 	"github.com/HomesNZ/go-common/env"
+	"github.com/HomesNZ/go-common/version"
+	"github.com/Sirupsen/logrus"
 	"github.com/bugsnag/bugsnag-go"
 )
 
@@ -22,9 +22,7 @@ func InitBugsnag() {
 	}
 }
 
-
 //Notify wraps the bugsnag.Notify call
-func Notify (err error, rawData ...interface{}){
+func Notify(err error, rawData ...interface{}) {
 	bugsnag.Notify(err, rawData)
 }
-

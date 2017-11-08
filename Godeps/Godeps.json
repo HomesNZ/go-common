@@ -1,24 +1,24 @@
 {
 	"ImportPath": "github.com/HomesNZ/go-common",
-	"GoVersion": "go1.7",
-	"GodepVersion": "v78",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v79",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/HomesNZ/data-import/util",
-			"Rev": "c840aba2c0a72206d6051f9a01ba13389858d75b"
+			"Rev": "7289fc93f4953b17bc29eb61f702b1bee9c557ea"
 		},
 		{
 			"ImportPath": "github.com/HomesNZ/elastic",
-			"Comment": "v3.0.69-2-g6c08531",
+			"Comment": "v3.0.55-51-g6c08531",
 			"Rev": "6c08531a5118f5053db1c44d3d42d9379de22344"
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.6-7-g9c060de",
-			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
+			"Comment": "v1.0.3-11-g89742ae",
+			"Rev": "89742aefa4b206dcf400792f3bd35b542998eb3b"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
@@ -227,10 +227,6 @@
 			"Rev": "09f803b133a9229292871a003eb1a5b077fb32b2"
 		},
 		{
-			"ImportPath": "github.com/kr/fs",
-			"Rev": "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
-		},
-		{
 			"ImportPath": "github.com/lib/pq",
 			"Comment": "go1.0-cutoff-77-g8abfc3e",
 			"Rev": "8abfc3eeb742e153b764d3b75a2c7b9e3b34520b"
@@ -415,10 +411,6 @@
 			"Rev": "c72df929b80ef4930aaa75d5e486887ff2f3e06a"
 		},
 		{
-			"ImportPath": "github.com/pkg/sftp",
-			"Rev": "66d9ce1cc20d10f8cbbb6d60443be87cd60e6085"
-		},
-		{
 			"ImportPath": "github.com/rafaeljusto/redigomock",
 			"Comment": "v1.0-41-g4e848f8",
 			"Rev": "4e848f835b81c67264868400e9b5cde3038e9d14"
@@ -432,7 +424,7 @@
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/ssh",
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
 			"Rev": "83f1503f771a82af8a31f358eb825e9efb5dae6c"
 		},
 		{

@@ -7,6 +7,7 @@ import (
 	"github.com/HomesNZ/go-common/env"
 	"github.com/Sirupsen/logrus"
 	bugsnag "github.com/bugsnag/bugsnag-go"
+	bugsnagErrors "github.com/bugsnag/bugsnag-go/errors"
 )
 
 // InitLogger initializes the logger by setting the log level to the env var LOG_LEVEL, or defaulting to `info`.
@@ -36,12 +37,17 @@ type bugsnagHook struct{}
 func (b bugsnagHook) Levels() []logrus.Level {
 	return []logrus.Level{
 		logrus.ErrorLevel,
+		logrus.FatalLevel,
 		logrus.PanicLevel,
-		logrus.WarnLevel,
 	}
 }
 
 // Fire sends the logrus entry to bugsnag.
 func (b bugsnagHook) Fire(entry *logrus.Entry) error {
-	return bugsnag.Notify(errors.New(entry.Message), entry.Data)
+	err, ok := entry.Data[logrus.ErrorKey].(error)
+	if !ok {
+		err = errors.New(entry.Message)
+	}
+	notify := bugsnagErrors.New(err, 1)
+	return bugsnag.Notify(notify, entry.Data)
 }
