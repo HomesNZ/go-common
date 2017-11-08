@@ -42,12 +42,15 @@ func (b bugsnagHook) Levels() []logrus.Level {
 	}
 }
 
+// skipFrames is the number of stack frames to skip in the error given to bugsnag
+const skipFrames = 1
+
 // Fire sends the logrus entry to bugsnag.
 func (b bugsnagHook) Fire(entry *logrus.Entry) error {
 	err, ok := entry.Data[logrus.ErrorKey].(error)
 	if !ok {
 		err = errors.New(entry.Message)
 	}
-	notify := bugsnagErrors.New(err, 1)
+	notify := bugsnagErrors.New(err, skipFrames)
 	return bugsnag.Notify(notify, entry.Data)
 }
