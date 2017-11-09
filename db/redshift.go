@@ -56,16 +56,14 @@ func ConnRedshift() *sql.DB {
 func (db *RS) Open() {
 	c, err := sql.Open("postgres", db.connectionString())
 	if err != nil {
-		log.Error(err)
-		log.Fatal(ErrUnableToParseDBConnection)
+		log.WithError(err).Fatal(ErrUnableToParseDBConnection)
 	}
 
 	db.Conn = c
 
 	err = db.verifyConnection()
 	if err != nil {
-		log.Error(err)
-		log.Fatal(ErrUnableToConnectToDB)
+		log.WithError(err).Fatal(ErrUnableToConnectToDB)
 	}
 }
 
@@ -83,7 +81,7 @@ func (db RS) verifyConnection() error {
 
 	err := backoff.Retry(pingDB, expBackoff)
 	if err != nil {
-		log.Warning(err)
+		log.WithError(err).Warning(err)
 		return ErrUnableToConnectToDB
 	}
 

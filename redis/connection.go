@@ -87,7 +87,7 @@ func InitConnection() {
 
 	err := verifyConnection(redisPool.Get())
 	if err != nil {
-		log.Error(err)
+		log.WithError(err).Error(err)
 	}
 
 	pool = redisPool
