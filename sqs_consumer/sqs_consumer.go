@@ -184,7 +184,7 @@ func (c Consumer) receive() {
 			contextLogger.Debug("waiting for request...")
 			response, err := c.queue.ReceiveMessage(maxMessages)
 			if err != nil {
-				contextLogger.Errorf("Error occurred while receiving from SQS queue (%s), sleeping for %d seconds", err.Error(), secondsToSleepOnError)
+				contextLogger.WithError(err).Errorf("Error occurred while receiving from SQS queue (%s), sleeping for %d seconds", err.Error(), secondsToSleepOnError)
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
 				continue
 			}
@@ -259,7 +259,7 @@ func (c Consumer) handleMessage(message sqs.Message) {
 		snsMessage := SnsMessage{}
 		err := json.Unmarshal([]byte(message.Body), &snsMessage)
 		if err != nil {
-			logger.Error(err)
+			logger.WithError(err).Error(err)
 			return
 		}
 		if !handler(snsMessage) {

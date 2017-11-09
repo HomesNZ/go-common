@@ -18,7 +18,7 @@ func Unpack(dir string) (string, error) {
 
 	reader, err := zip.OpenReader(dir)
 	if err != nil {
-		logrus.WithField("ZIP", "reading the ZIP archive").Error(err)
+		logrus.WithField("ZIP", "reading the ZIP archive").WithError(err).Error(err)
 		return "", err
 	}
 
@@ -26,7 +26,7 @@ func Unpack(dir string) (string, error) {
 
 	err = os.MkdirAll(unpackPath, 0755)
 	if err != nil {
-		logrus.WithField("ZIP", "creating ZIP file directory").Error(err)
+		logrus.WithField("ZIP", "creating ZIP file directory").WithError(err).Error(err)
 		return "", err
 	}
 
@@ -40,19 +40,19 @@ func Unpack(dir string) (string, error) {
 
 		fileReader, err := file.Open()
 		if err != nil {
-			logrus.WithField("ZIP", "opening a ZIP file").Error(err)
+			logrus.WithField("ZIP", "opening a ZIP file").WithError(err).Error(err)
 			return "", err
 		}
 
 		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
 		if err != nil {
-			logrus.WithField("ZIP", "opening ZIP target").Error(err)
+			logrus.WithField("ZIP", "opening ZIP target").WithError(err).Error(err)
 			return "", err
 		}
 
 		_, err = io.Copy(targetFile, fileReader)
 		if err != nil {
-			logrus.WithField("ZIP", "copying ZIP file").Error(err)
+			logrus.WithField("ZIP", "copying ZIP file").WithError(err).Error(err)
 			return "", err
 		}
 
