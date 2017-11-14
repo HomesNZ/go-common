@@ -47,10 +47,13 @@ const skipFrames = 4
 
 // Fire sends the logrus entry to bugsnag.
 func (b bugsnagHook) Fire(entry *logrus.Entry) error {
-	err, ok := entry.Data[logrus.ErrorKey].(error)
-	if ok {
-		err = wrapStackError(err)
-	} else {
+	var err error
+	switch er := entry.Data[logrus.ErrorKey].(type) {
+	case stackTracer:
+		err = stackError{er}
+	case error:
+		err = er
+	default:
 		err = errors.New(entry.Message)
 	}
 	notify := bugsnagErrors.New(err, skipFrames)
@@ -61,12 +64,7 @@ type stackError struct {
 	stackTracer
 }
 
-func wrapStackError(err error) error {
-	if er, ok := err.(stackTracer); ok {
-		return stackError{er}
-	}
-	return err
-}
+var _ bugsnagErrors.ErrorWithCallers = stackError{}
 
 func (e stackError) Callers() []uintptr {
 	trace := e.StackTrace()
