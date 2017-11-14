@@ -1,13 +1,13 @@
 package config
 
 import (
-	"errors"
 	"os"
 
 	"github.com/HomesNZ/go-common/env"
 	"github.com/Sirupsen/logrus"
 	bugsnag "github.com/bugsnag/bugsnag-go"
 	bugsnagErrors "github.com/bugsnag/bugsnag-go/errors"
+	"github.com/pkg/errors"
 )
 
 // InitLogger initializes the logger by setting the log level to the env var LOG_LEVEL, or defaulting to `info`.
@@ -43,14 +43,41 @@ func (b bugsnagHook) Levels() []logrus.Level {
 }
 
 // skipFrames is the number of stack frames to skip in the error given to bugsnag
-const skipFrames = 1
+const skipFrames = 4
 
 // Fire sends the logrus entry to bugsnag.
 func (b bugsnagHook) Fire(entry *logrus.Entry) error {
 	err, ok := entry.Data[logrus.ErrorKey].(error)
-	if !ok {
+	if ok {
+		err = wrapStackError(err)
+	} else {
 		err = errors.New(entry.Message)
 	}
 	notify := bugsnagErrors.New(err, skipFrames)
 	return bugsnag.Notify(notify, entry.Data)
+}
+
+type stackError struct {
+	stackTracer
+}
+
+func wrapStackError(err error) error {
+	if er, ok := err.(stackTracer); ok {
+		return stackError{er}
+	}
+	return err
+}
+
+func (e stackError) Callers() []uintptr {
+	trace := e.StackTrace()
+	callers := make([]uintptr, len(trace))
+	for i, frame := range e.StackTrace() {
+		callers[i] = uintptr(frame)
+	}
+	return callers
+}
+
+type stackTracer interface {
+	error
+	StackTrace() errors.StackTrace
 }
