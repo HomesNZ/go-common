@@ -57,7 +57,14 @@ func (b bugsnagHook) Fire(entry *logrus.Entry) error {
 		err = errors.New(entry.Message)
 	}
 	notify := bugsnagErrors.New(err, skipFrames)
-	return bugsnag.Notify(notify, entry.Data)
+	meta := bugsnag.MetaData{}
+	for field, value := range entry.Data {
+		if field == logrus.ErrorKey {
+			continue
+		}
+		meta.Add("logrus", field, value)
+	}
+	return bugsnag.Notify(notify, meta)
 }
 
 type stackError struct {
