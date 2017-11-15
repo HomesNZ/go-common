@@ -61,6 +61,7 @@ func Middleware(next http.Handler) http.Handler {
 				txn.AddAttribute(k, strings.Join(v, ","))
 			}
 			defer txn.End()
+			w = txn
 			r = r.WithContext(newContext(r.Context(), txn))
 		}
 		next.ServeHTTP(w, r)
