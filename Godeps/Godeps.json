@@ -152,13 +152,13 @@
 		},
 		{
 			"ImportPath": "github.com/bugsnag/bugsnag-go",
-			"Comment": "v1.0.5-28-g31ae348",
-			"Rev": "31ae3484de3e96dbc4de1756b14ad6393b94103c"
+			"Comment": "v1.2.2-8-g3303ca0",
+			"Rev": "3303ca0e0e2a90d1053d0ccead264c22de27f475"
 		},
 		{
 			"ImportPath": "github.com/bugsnag/bugsnag-go/errors",
-			"Comment": "v1.0.5-28-g31ae348",
-			"Rev": "31ae3484de3e96dbc4de1756b14ad6393b94103c"
+			"Comment": "v1.2.2-8-g3303ca0",
+			"Rev": "3303ca0e0e2a90d1053d0ccead264c22de27f475"
 		},
 		{
 			"ImportPath": "github.com/bugsnag/osext",
@@ -409,6 +409,11 @@
 			"ImportPath": "github.com/onsi/gomega/types",
 			"Comment": "v1.0-83-gc72df92",
 			"Rev": "c72df929b80ef4930aaa75d5e486887ff2f3e06a"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-5-gc605e28",
+			"Rev": "c605e284fe17294bda444b34710735b29d1a9d90"
 		},
 		{
 			"ImportPath": "github.com/rafaeljusto/redigomock",
