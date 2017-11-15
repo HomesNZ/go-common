@@ -42,7 +42,7 @@ func InitNewRelic(appName string) {
 	logrus.Info("New Relic initialized successfully")
 }
 
-func newContext(ctx context.Context, txn newrelic.Transaction) context.Context {
+func NewContext(ctx context.Context, txn newrelic.Transaction) context.Context {
 	return context.WithValue(ctx, transactionKey, txn)
 }
 
@@ -62,7 +62,7 @@ func Middleware(next http.Handler) http.Handler {
 			}
 			defer txn.End()
 			w = txn
-			r = r.WithContext(newContext(r.Context(), txn))
+			r = r.WithContext(NewContext(r.Context(), txn))
 		}
 		next.ServeHTTP(w, r)
 	})
