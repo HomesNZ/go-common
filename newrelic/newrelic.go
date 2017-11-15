@@ -42,13 +42,27 @@ func InitNewRelic(appName string) {
 	logrus.Info("New Relic initialized successfully")
 }
 
+// NewContext returns a new context with txn added as a value
 func NewContext(ctx context.Context, txn newrelic.Transaction) context.Context {
 	return context.WithValue(ctx, transactionKey, txn)
 }
 
+// FromContext returns the stored Transaction if it exists. Returned bool will be false if not found
 func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
 	txn, ok := ctx.Value(transactionKey).(newrelic.Transaction)
 	return txn, ok
+}
+
+// StartTransaction begins a Transaction.
+// * The Transaction should only be used in a single goroutine.
+// * This method never returns nil.
+// * If an http.Request is provided then the Transaction is considered
+//   a web transaction.
+// * If an http.ResponseWriter is provided then the Transaction can be
+//   used in its place.  This allows instrumentation of the response
+//   code and response headers.
+func StartTransaction(name string, w http.ResponseWriter, r *http.Request) newrelic.Transaction {
+	return app.StartTransaction(name, w, r)
 }
 
 // Middleware is an easy way to implement NewRelic as middleware in an Alice
@@ -56,7 +70,7 @@ func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app != nil {
-			txn := app.StartTransaction(r.URL.Path, w, r)
+			txn := StartTransaction(r.URL.Path, w, r)
 			for k, v := range r.URL.Query() {
 				txn.AddAttribute(k, strings.Join(v, ","))
 			}
