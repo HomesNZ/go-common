@@ -1,6 +1,7 @@
 package newrelic
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -15,6 +16,10 @@ var (
 	app      newrelic.Application
 	initOnce = sync.Once{}
 )
+
+type contextKey int
+
+var transactionKey contextKey = 0
 
 // InitNewRelic initializes the NewRelic configuration and panics if there is an
 // error.
@@ -37,6 +42,15 @@ func InitNewRelic(appName string) {
 	logrus.Info("New Relic initialized successfully")
 }
 
+func newContext(ctx context.Context, txn newrelic.Transaction) context.Context {
+	return context.WithValue(ctx, transactionKey, txn)
+}
+
+func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
+	txn, ok := ctx.Value(transactionKey).(newrelic.Transaction)
+	return txn, ok
+}
+
 // Middleware is an easy way to implement NewRelic as middleware in an Alice
 // chain.
 func Middleware(next http.Handler) http.Handler {
@@ -47,6 +61,7 @@ func Middleware(next http.Handler) http.Handler {
 				txn.AddAttribute(k, strings.Join(v, ","))
 			}
 			defer txn.End()
+			r = r.WithContext(newContext(r.Context(), txn))
 		}
 		next.ServeHTTP(w, r)
 	})
