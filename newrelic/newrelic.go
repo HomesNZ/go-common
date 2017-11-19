@@ -9,6 +9,7 @@ import (
 
 	"github.com/HomesNZ/go-common/env"
 	"github.com/Sirupsen/logrus"
+	"github.com/gorilla/mux"
 	newrelic "github.com/newrelic/go-agent"
 )
 
@@ -70,7 +71,8 @@ func StartTransaction(name string, w http.ResponseWriter, r *http.Request) newre
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app != nil {
-			txn := StartTransaction(r.URL.Path, w, r)
+			name := routeName(r)
+			txn := StartTransaction(name, w, r)
 			for k, v := range r.URL.Query() {
 				txn.AddAttribute(k, strings.Join(v, ","))
 			}
@@ -80,4 +82,19 @@ func Middleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func routeName(r *http.Request) string {
+	route := mux.CurrentRoute(r)
+	if nil == route {
+		return r.URL.Path
+	}
+	if n := route.GetName(); n != "" {
+		return n
+	}
+	if n, _ := route.GetPathTemplate(); n != "" {
+		return n
+	}
+	n, _ := route.GetHostTemplate()
+	return n
 }
