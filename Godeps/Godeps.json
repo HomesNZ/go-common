@@ -8,7 +8,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/HomesNZ/data-import/util",
-			"Rev": "7289fc93f4953b17bc29eb61f702b1bee9c557ea"
+			"Rev": "f70685e163ece2524be53f8e23eaaff55860a709"
 		},
 		{
 			"ImportPath": "github.com/HomesNZ/elastic",
@@ -196,6 +196,11 @@
 			"Rev": "b2c2eaf25cbb87f41087aa796facf82113809ed5"
 		},
 		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.6.0-1-g2d5fef0",
+			"Rev": "2d5fef06b891c971b14aa6f71ca5ab6c03a36e0e"
+		},
+		{
 			"ImportPath": "github.com/guregu/dynamo",
 			"Rev": "bc4b7d486595bb111de3cea80827c4c39fd0edb1"
 		},
@@ -238,33 +243,33 @@
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/jsonx",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/logger",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/sysinfo",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/utilization",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/nicday/go-cloudinary",
