@@ -35,10 +35,9 @@ const (
 	redsyncDefaultExpiry = time.Second * 120
 )
 
-// MessageHandler is an anonymous function which is used to handle messages
-// recieved from the SQS queue. It should handle errors internally and return a
-// simple boolean to indicate if handling was successful.
-type MessageHandler func(message sqs.Message) bool
+type ConsumerMessage interface {
+	changeMessageVisibility(Consumer, time.Duration) error
+}
 
 // Consumer contains all the channels to manage goroutines and the SQS
 // connection.
@@ -230,7 +229,7 @@ func (c Consumer) handleMessage(message sqs.Message) {
 
 	switch handler := c.handler.(type) {
 	case MessageHandler:
-		if !handler(message) {
+		if !handler(SQSMessage(message)) {
 			// Failed to handle message, do nothing. It's the responsibility of the
 			// handler to communicate the failure via logs/bugsnag etc.
 			logger.Debug("failed to handle message")
@@ -272,4 +271,10 @@ func (c Consumer) Stop() error {
 	contextLogger.Info("stopping polling of SQS queue:", c.queueName)
 	c.doneChan <- true
 	return nil
+}
+
+// ChangeMessageVisibility sets the visibility timeout for a given message.
+// http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html
+func (c Consumer) ChangeMessageVisibility(message ConsumerMessage, d time.Duration) error {
+	return message.changeMessageVisibility(c, d)
 }
