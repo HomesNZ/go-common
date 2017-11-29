@@ -36,7 +36,7 @@ const (
 )
 
 type ConsumerMessage interface {
-	changeMessageVisibility(Consumer, time.Duration) error
+	ChangeMessageVisibility(Consumer, time.Duration) error
 }
 
 // Consumer contains all the channels to manage goroutines and the SQS
@@ -276,5 +276,5 @@ func (c Consumer) Stop() error {
 // ChangeMessageVisibility sets the visibility timeout for a given message.
 // http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html
 func (c Consumer) ChangeMessageVisibility(message ConsumerMessage, d time.Duration) error {
-	return message.changeMessageVisibility(c, d)
+	return message.ChangeMessageVisibility(c, d)
 }
