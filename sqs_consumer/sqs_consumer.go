@@ -1,7 +1,6 @@
 package sqsConsumer
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -40,24 +39,6 @@ const (
 // recieved from the SQS queue. It should handle errors internally and return a
 // simple boolean to indicate if handling was successful.
 type MessageHandler func(message sqs.Message) bool
-
-// SNSMessageHandler is the same as MessageHandler except it converts an SQS
-// message to an SNS message format before sending to the handler.
-type SNSMessageHandler func(message SnsMessage) bool
-
-// SnsMessage is a data struct matching the output from a message pushed through
-// SQS from SNS.
-type SnsMessage struct {
-	Type             string
-	MessageID        string `json:"MessageId"`
-	TopicArn         string
-	Message          string
-	Timestamp        time.Time
-	SignatureVersion string
-	Signature        string
-	SigningCertURL   string
-	UnsubscribeURL   string
-}
 
 // Consumer contains all the channels to manage goroutines and the SQS
 // connection.
@@ -256,12 +237,12 @@ func (c Consumer) handleMessage(message sqs.Message) {
 			return
 		}
 	case SNSMessageHandler:
-		snsMessage := SnsMessage{}
-		err := json.Unmarshal([]byte(message.Body), &snsMessage)
+		snsMessage, err := newSNSMessage(&message)
 		if err != nil {
 			logger.WithError(err).Error(err)
 			return
 		}
+
 		if !handler(snsMessage) {
 			// Failed to handle message, do nothing. It's the responsibility of the
 			// handler to communicate the failure via logs/bugsnag etc.
