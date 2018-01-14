@@ -1,12 +1,13 @@
 package config
 
 import (
-	"errors"
 	"os"
 
 	"github.com/HomesNZ/go-common/env"
 	"github.com/Sirupsen/logrus"
 	bugsnag "github.com/bugsnag/bugsnag-go"
+	bugsnagErrors "github.com/bugsnag/bugsnag-go/errors"
+	"github.com/pkg/errors"
 )
 
 // InitLogger initializes the logger by setting the log level to the env var LOG_LEVEL, or defaulting to `info`.
@@ -36,12 +37,52 @@ type bugsnagHook struct{}
 func (b bugsnagHook) Levels() []logrus.Level {
 	return []logrus.Level{
 		logrus.ErrorLevel,
+		logrus.FatalLevel,
 		logrus.PanicLevel,
-		logrus.WarnLevel,
 	}
 }
 
+// skipFrames is the number of stack frames to skip in the error given to bugsnag
+const skipFrames = 4
+
 // Fire sends the logrus entry to bugsnag.
 func (b bugsnagHook) Fire(entry *logrus.Entry) error {
-	return bugsnag.Notify(errors.New(entry.Message), entry.Data)
+	var err error
+	switch er := entry.Data[logrus.ErrorKey].(type) {
+	case stackTracer:
+		err = stackError{er}
+	case error:
+		err = er
+	default:
+		err = errors.New(entry.Message)
+	}
+	notify := bugsnagErrors.New(err, skipFrames)
+	meta := bugsnag.MetaData{}
+	for field, value := range entry.Data {
+		if field == logrus.ErrorKey {
+			continue
+		}
+		meta.Add("logrus", field, value)
+	}
+	return bugsnag.Notify(notify, meta)
+}
+
+type stackError struct {
+	stackTracer
+}
+
+var _ bugsnagErrors.ErrorWithCallers = stackError{}
+
+func (e stackError) Callers() []uintptr {
+	trace := e.StackTrace()
+	callers := make([]uintptr, len(trace))
+	for i, frame := range e.StackTrace() {
+		callers[i] = uintptr(frame)
+	}
+	return callers
+}
+
+type stackTracer interface {
+	error
+	StackTrace() errors.StackTrace
 }

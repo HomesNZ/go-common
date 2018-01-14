@@ -30,9 +30,13 @@ func (stack *middlewareStack) Run(event *Event, config *Configuration, next func
 	for i := range stack.before {
 		before := stack.before[len(stack.before)-i-1]
 
+		severity := event.Severity
 		err := stack.runBeforeFilter(before, event, config)
 		if err != nil {
 			return err
+		}
+		if event.Severity != severity {
+			event.handledState.SeverityReason = SeverityReasonCallbackSpecified
 		}
 	}
 
@@ -67,15 +71,13 @@ func httpRequestMiddleware(event *Event, config *Configuration) error {
 
 			event.MetaData.Update(MetaData{
 				"request": {
-					"remoteAddr": request.RemoteAddr,
-					"method":     request.Method,
+					"clientIp":   request.RemoteAddr,
+					"httpMethod": request.Method,
 					"url":        proto + request.Host + request.RequestURI,
 					"params":     request.URL.Query(),
+					"headers":    request.Header,
 				},
 			})
-
-			// Add headers as a separate tab.
-			event.MetaData.AddStruct("Headers", request.Header)
 
 			// Default context to Path
 			if event.Context == "" {

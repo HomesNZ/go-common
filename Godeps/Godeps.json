@@ -27,8 +27,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.6-7-g9c060de",
-			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
+			"Comment": "v1.0.3-11-g89742ae",
+			"Rev": "89742aefa4b206dcf400792f3bd35b542998eb3b"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
@@ -162,13 +162,13 @@
 		},
 		{
 			"ImportPath": "github.com/bugsnag/bugsnag-go",
-			"Comment": "v1.0.5-28-g31ae348",
-			"Rev": "31ae3484de3e96dbc4de1756b14ad6393b94103c"
+			"Comment": "v1.2.2-8-g3303ca0",
+			"Rev": "3303ca0e0e2a90d1053d0ccead264c22de27f475"
 		},
 		{
 			"ImportPath": "github.com/bugsnag/bugsnag-go/errors",
-			"Comment": "v1.0.5-28-g31ae348",
-			"Rev": "31ae3484de3e96dbc4de1756b14ad6393b94103c"
+			"Comment": "v1.2.2-8-g3303ca0",
+			"Rev": "3303ca0e0e2a90d1053d0ccead264c22de27f475"
 		},
 		{
 			"ImportPath": "github.com/bugsnag/osext",
@@ -204,6 +204,11 @@
 		{
 			"ImportPath": "github.com/goamz/goamz/sqs",
 			"Rev": "b2c2eaf25cbb87f41087aa796facf82113809ed5"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.6.0-1-g2d5fef0",
+			"Rev": "2d5fef06b891c971b14aa6f71ca5ab6c03a36e0e"
 		},
 		{
 			"ImportPath": "github.com/guregu/dynamo",
@@ -248,33 +253,33 @@
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/jsonx",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/logger",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/sysinfo",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/newrelic/go-agent/internal/utilization",
-			"Comment": "v1.8.0",
-			"Rev": "60ed7aa03a85a1355b4189f66e23604de8f27d57"
+			"Comment": "v1.10.0",
+			"Rev": "462a146a1270954750aac98c5b3e83dec6a9adfd"
 		},
 		{
 			"ImportPath": "github.com/nicday/go-cloudinary",
@@ -437,6 +442,18 @@
 		{
 			"ImportPath": "github.com/vaughan0/go-ini",
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "83f1503f771a82af8a31f358eb825e9efb5dae6c"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "1358eff22f0dd0c54fc521042cc607f6ff4b531a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "1358eff22f0dd0c54fc521042cc607f6ff4b531a"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",

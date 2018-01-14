@@ -1,6 +1,8 @@
 package db_test
 
 import (
+	"encoding/json"
+
 	"github.com/HomesNZ/go-common/db"
 
 	. "github.com/onsi/ginkgo"
@@ -28,5 +30,34 @@ var _ = Describe("PG Array Test", func() {
 
 			Expect(actual).To(Equal(expected))
 		})
+	})
+
+	It("marshals to JSON as an array of strings", func() {
+		a := db.PGArray{"a", "b", "c"}
+		b, err := json.Marshal(a)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(b).To(Equal([]byte(`["a","b","c"]`)))
+	})
+	It("unmarshals an array of strings from JSON", func() {
+		j := []byte(`["a","b","c"]`)
+		a := db.PGArray{}
+		err := json.Unmarshal(j, &a)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(a).To(Equal(db.PGArray{"a", "b", "c"}))
+	})
+	It("unmarshals an empty array from JSON", func() {
+		j := []byte(`[]`)
+		a := db.PGArray{}
+		err := json.Unmarshal(j, &a)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(a).To(Equal(db.PGArray{}))
+	})
+	It("unmarshals a null value from JSON", func() {
+		j := []byte(`null`)
+		a := db.PGArray{}
+		var b db.PGArray
+		err := json.Unmarshal(j, &a)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(a).To(Equal(b))
 	})
 })

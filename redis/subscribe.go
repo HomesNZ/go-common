@@ -14,13 +14,13 @@ func (c Cache) Subscribe(subscription string, handleResponse func(interface{})) 
 
 	_, err := conn.Do("PSUBSCRIBE", subscription)
 	if err != nil {
-		logrus.Error(err)
+		logrus.WithError(err).Error(err)
 	}
 
 	for err == nil {
 		reply, err := conn.Receive()
 		if err != nil {
-			logrus.Fatal("Could not connect to redis ", err.Error())
+			logrus.WithError(err).Fatal("Could not connect to redis ", err.Error())
 		}
 
 		handleResponse(reply)
