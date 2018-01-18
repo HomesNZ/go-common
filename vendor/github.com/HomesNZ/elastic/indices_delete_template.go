@@ -1,20 +1,19 @@
-// Copyright 2012-2015 Oliver Eilhard. All rights reserved.
+// Copyright 2012-present Oliver Eilhard. All rights reserved.
 // Use of this source code is governed by a MIT-license.
 // See http://olivere.mit-license.org/license.txt for details.
 
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
-	"golang.org/x/net/context"
-
-	"gopkg.in/olivere/elastic.v3/uritemplates"
+	"github.com/HomesNZ/elastic/uritemplates"
 )
 
 // IndicesDeleteTemplateService deletes index templates.
-// See http://www.elasticsearch.org/guide/en/elasticsearch/reference/1.4/indices-templates.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-templates.html.
 type IndicesDeleteTemplateService struct {
 	client        *Client
 	pretty        bool
@@ -91,12 +90,7 @@ func (s *IndicesDeleteTemplateService) Validate() error {
 }
 
 // Do executes the operation.
-func (s *IndicesDeleteTemplateService) Do() (*IndicesDeleteTemplateResponse, error) {
-	return s.DoC(nil)
-}
-
-// DoC executes the operation.
-func (s *IndicesDeleteTemplateService) DoC(ctx context.Context) (*IndicesDeleteTemplateResponse, error) {
+func (s *IndicesDeleteTemplateService) Do(ctx context.Context) (*IndicesDeleteTemplateResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
 		return nil, err
@@ -109,7 +103,7 @@ func (s *IndicesDeleteTemplateService) DoC(ctx context.Context) (*IndicesDeleteT
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequestC(ctx, "DELETE", path, params, nil)
+	res, err := s.client.PerformRequest(ctx, "DELETE", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

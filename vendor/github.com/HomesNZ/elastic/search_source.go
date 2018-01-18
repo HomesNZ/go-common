@@ -1,4 +1,4 @@
-// Copyright 2012-2015 Oliver Eilhard. All rights reserved.
+// Copyright 2012-present Oliver Eilhard. All rights reserved.
 // Use of this source code is governed by a MIT-license.
 // See http://olivere.mit-license.org/license.txt for details.
 
@@ -13,17 +13,19 @@ import (
 type SearchSource struct {
 	query                    Query
 	postQuery                Query
+	sliceQuery               Query
 	from                     int
 	size                     int
 	explain                  *bool
 	version                  *bool
 	sorters                  []Sorter
 	trackScores              bool
+	searchAfterSortValues    []interface{}
 	minScore                 *float64
 	timeout                  string
 	terminateAfter           *int
-	fieldNames               []string
-	fieldDataFields          []string
+	storedFieldNames         []string
+	docvalueFields           []string
 	scriptFields             []*ScriptField
 	fetchSourceContext       *FetchSourceContext
 	aggregations             map[string]Aggregation
@@ -35,22 +37,19 @@ type SearchSource struct {
 	indexBoosts              map[string]float64
 	stats                    []string
 	innerHits                map[string]*InnerHit
+	collapse                 *CollapseBuilder
+	profile                  bool
 }
 
 // NewSearchSource initializes a new SearchSource.
 func NewSearchSource() *SearchSource {
 	return &SearchSource{
-		from:            -1,
-		size:            -1,
-		trackScores:     false,
-		sorters:         make([]Sorter, 0),
-		fieldDataFields: make([]string, 0),
-		scriptFields:    make([]*ScriptField, 0),
-		aggregations:    make(map[string]Aggregation),
-		rescores:        make([]*Rescore, 0),
-		indexBoosts:     make(map[string]float64),
-		stats:           make([]string, 0),
-		innerHits:       make(map[string]*InnerHit),
+		from:         -1,
+		size:         -1,
+		trackScores:  false,
+		aggregations: make(map[string]Aggregation),
+		indexBoosts:  make(map[string]float64),
+		innerHits:    make(map[string]*InnerHit),
 	}
 }
 
@@ -60,11 +59,28 @@ func (s *SearchSource) Query(query Query) *SearchSource {
 	return s
 }
 
+// Profile specifies that this search source should activate the
+// Profile API for queries made on it.
+func (s *SearchSource) Profile(profile bool) *SearchSource {
+	s.profile = profile
+	return s
+}
+
 // PostFilter will be executed after the query has been executed and
 // only affects the search hits, not the aggregations.
 // This filter is always executed as the last filtering mechanism.
 func (s *SearchSource) PostFilter(postFilter Query) *SearchSource {
 	s.postQuery = postFilter
+	return s
+}
+
+// Slice allows partitioning the documents in multiple slices.
+// It is e.g. used to slice a scroll operation, supported in
+// Elasticsearch 5.0 or later.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-scroll.html#sliced-scroll
+// for details.
+func (s *SearchSource) Slice(sliceQuery Query) *SearchSource {
+	s.sliceQuery = sliceQuery
 	return s
 }
 
@@ -149,6 +165,15 @@ func (s *SearchSource) TrackScores(trackScores bool) *SearchSource {
 	return s
 }
 
+// SearchAfter allows a different form of pagination by using a live cursor,
+// using the results of the previous page to help the retrieval of the next.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-search-after.html
+func (s *SearchSource) SearchAfter(sortValues ...interface{}) *SearchSource {
+	s.searchAfterSortValues = append(s.searchAfterSortValues, sortValues...)
+	return s
+}
+
 // Aggregation adds an aggreation to perform as part of the search.
 func (s *SearchSource) Aggregation(name string, aggregation Aggregation) *SearchSource {
 	s.aggregations[name] = aggregation
@@ -218,45 +243,39 @@ func (s *SearchSource) FetchSourceContext(fetchSourceContext *FetchSourceContext
 	return s
 }
 
-// NoFields indicates that no fields should be loaded, resulting in only
+// NoStoredFields indicates that no fields should be loaded, resulting in only
 // id and type to be returned per field.
-func (s *SearchSource) NoFields() *SearchSource {
-	s.fieldNames = make([]string, 0)
+func (s *SearchSource) NoStoredFields() *SearchSource {
+	s.storedFieldNames = nil
 	return s
 }
 
-// Field adds a single field to load and return (note, must be stored) as
+// StoredField adds a single field to load and return (note, must be stored) as
 // part of the search request. If none are specified, the source of the
 // document will be returned.
-func (s *SearchSource) Field(fieldName string) *SearchSource {
-	if s.fieldNames == nil {
-		s.fieldNames = make([]string, 0)
-	}
-	s.fieldNames = append(s.fieldNames, fieldName)
+func (s *SearchSource) StoredField(storedFieldName string) *SearchSource {
+	s.storedFieldNames = append(s.storedFieldNames, storedFieldName)
 	return s
 }
 
-// Fields	sets the fields to load and return as part of the search request.
+// StoredFields	sets the fields to load and return as part of the search request.
 // If none are specified, the source of the document will be returned.
-func (s *SearchSource) Fields(fieldNames ...string) *SearchSource {
-	if s.fieldNames == nil {
-		s.fieldNames = make([]string, 0)
-	}
-	s.fieldNames = append(s.fieldNames, fieldNames...)
+func (s *SearchSource) StoredFields(storedFieldNames ...string) *SearchSource {
+	s.storedFieldNames = append(s.storedFieldNames, storedFieldNames...)
 	return s
 }
 
-// FieldDataField adds a single field to load from the field data cache
+// DocvalueField adds a single field to load from the field data cache
 // and return as part of the search request.
-func (s *SearchSource) FieldDataField(fieldDataField string) *SearchSource {
-	s.fieldDataFields = append(s.fieldDataFields, fieldDataField)
+func (s *SearchSource) DocvalueField(fieldDataField string) *SearchSource {
+	s.docvalueFields = append(s.docvalueFields, fieldDataField)
 	return s
 }
 
-// FieldDataFields adds one or more fields to load from the field data cache
+// DocvalueFields adds one or more fields to load from the field data cache
 // and return as part of the search request.
-func (s *SearchSource) FieldDataFields(fieldDataFields ...string) *SearchSource {
-	s.fieldDataFields = append(s.fieldDataFields, fieldDataFields...)
+func (s *SearchSource) DocvalueFields(docvalueFields ...string) *SearchSource {
+	s.docvalueFields = append(s.docvalueFields, docvalueFields...)
 	return s
 }
 
@@ -291,6 +310,12 @@ func (s *SearchSource) InnerHit(name string, innerHit *InnerHit) *SearchSource {
 	return s
 }
 
+// Collapse adds field collapsing.
+func (s *SearchSource) Collapse(collapse *CollapseBuilder) *SearchSource {
+	s.collapse = collapse
+	return s
+}
+
 // Source returns the serializable JSON for the source builder.
 func (s *SearchSource) Source() (interface{}, error) {
 	source := make(map[string]interface{})
@@ -321,6 +346,13 @@ func (s *SearchSource) Source() (interface{}, error) {
 		}
 		source["post_filter"] = src
 	}
+	if s.sliceQuery != nil {
+		src, err := s.sliceQuery.Source()
+		if err != nil {
+			return nil, err
+		}
+		source["slice"] = src
+	}
 	if s.minScore != nil {
 		source["min_score"] = *s.minScore
 	}
@@ -330,6 +362,16 @@ func (s *SearchSource) Source() (interface{}, error) {
 	if s.explain != nil {
 		source["explain"] = *s.explain
 	}
+	if s.profile {
+		source["profile"] = s.profile
+	}
+	if s.collapse != nil {
+		src, err := s.collapse.Source()
+		if err != nil {
+			return nil, err
+		}
+		source["collapse"] = src
+	}
 	if s.fetchSourceContext != nil {
 		src, err := s.fetchSourceContext.Source()
 		if err != nil {
@@ -338,17 +380,17 @@ func (s *SearchSource) Source() (interface{}, error) {
 		source["_source"] = src
 	}
 
-	if s.fieldNames != nil {
-		switch len(s.fieldNames) {
+	if s.storedFieldNames != nil {
+		switch len(s.storedFieldNames) {
 		case 1:
-			source["fields"] = s.fieldNames[0]
+			source["stored_fields"] = s.storedFieldNames[0]
 		default:
-			source["fields"] = s.fieldNames
+			source["stored_fields"] = s.storedFieldNames
 		}
 	}
 
-	if len(s.fieldDataFields) > 0 {
-		source["fielddata_fields"] = s.fieldDataFields
+	if len(s.docvalueFields) > 0 {
+		source["docvalue_fields"] = s.docvalueFields
 	}
 
 	if len(s.scriptFields) > 0 {
@@ -377,6 +419,10 @@ func (s *SearchSource) Source() (interface{}, error) {
 
 	if s.trackScores {
 		source["track_scores"] = s.trackScores
+	}
+
+	if len(s.searchAfterSortValues) > 0 {
+		source["search_after"] = s.searchAfterSortValues
 	}
 
 	if len(s.indexBoosts) > 0 {
@@ -490,6 +536,7 @@ func (s *SearchSource) Source() (interface{}, error) {
 				}
 			} else {
 				// TODO the Java client throws here, because either path or typ must be specified
+				_ = m
 			}
 		}
 		source["inner_hits"] = m

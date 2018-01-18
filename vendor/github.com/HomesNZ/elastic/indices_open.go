@@ -1,21 +1,20 @@
-// Copyright 2012-2015 Oliver Eilhard. All rights reserved.
+// Copyright 2012-present Oliver Eilhard. All rights reserved.
 // Use of this source code is governed by a MIT-license.
 // See http://olivere.mit-license.org/license.txt for details.
 
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
-	"golang.org/x/net/context"
-
-	"gopkg.in/olivere/elastic.v3/uritemplates"
+	"github.com/HomesNZ/elastic/uritemplates"
 )
 
 // IndicesOpenService opens an index.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-open-close.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-open-close.html
 // for details.
 type IndicesOpenService struct {
 	client            *Client
@@ -126,12 +125,7 @@ func (s *IndicesOpenService) Validate() error {
 }
 
 // Do executes the operation.
-func (s *IndicesOpenService) Do() (*IndicesOpenResponse, error) {
-	return s.DoC(nil)
-}
-
-// DoC executes the operation.
-func (s *IndicesOpenService) DoC(ctx context.Context) (*IndicesOpenResponse, error) {
+func (s *IndicesOpenService) Do(ctx context.Context) (*IndicesOpenResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
 		return nil, err
@@ -144,7 +138,7 @@ func (s *IndicesOpenService) DoC(ctx context.Context) (*IndicesOpenResponse, err
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequestC(ctx, "POST", path, params, nil)
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -5,11 +5,10 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // -- Actions --
@@ -193,7 +192,7 @@ func (a *AliasRemoveAction) Source() (interface{}, error) {
 // -- Service --
 
 // AliasService enables users to add or remove an alias.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/indices-aliases.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-aliases.html
 // for details.
 type AliasService struct {
 	client  *Client
@@ -256,12 +255,7 @@ func (s *AliasService) buildURL() (string, url.Values, error) {
 }
 
 // Do executes the command.
-func (s *AliasService) Do() (*AliasResult, error) {
-	return s.DoC(nil)
-}
-
-// DoC executes the command.
-func (s *AliasService) DoC(ctx context.Context) (*AliasResult, error) {
+func (s *AliasService) Do(ctx context.Context) (*AliasResult, error) {
 	path, params, err := s.buildURL()
 	if err != nil {
 		return nil, err
@@ -280,7 +274,7 @@ func (s *AliasService) DoC(ctx context.Context) (*AliasResult, error) {
 	body["actions"] = actions
 
 	// Get response
-	res, err := s.client.PerformRequestC(ctx, "POST", path, params, body)
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}

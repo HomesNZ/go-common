@@ -1,4 +1,4 @@
-// Copyright 2012-2015 Oliver Eilhard. All rights reserved.
+// Copyright 2012-present Oliver Eilhard. All rights reserved.
 // Use of this source code is governed by a MIT-license.
 // See http://olivere.mit-license.org/license.txt for details.
 
@@ -7,7 +7,7 @@ package elastic
 // InnerHit implements a simple join for parent/child, nested, and even
 // top-level documents in Elasticsearch.
 // It is an experimental feature for Elasticsearch versions 1.5 (or greater).
-// See http://www.elastic.co/guide/en/elasticsearch/reference/1.5/search-request-inner-hits.html
+// See http://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-inner-hits.html
 // for documentation.
 //
 // See the tests for SearchSource, HasChildFilter, HasChildQuery,
@@ -66,18 +66,18 @@ func (hit *InnerHit) Version(version bool) *InnerHit {
 	return hit
 }
 
-func (hit *InnerHit) Field(fieldName string) *InnerHit {
-	hit.source.Field(fieldName)
+func (hit *InnerHit) StoredField(storedFieldName string) *InnerHit {
+	hit.source.StoredField(storedFieldName)
 	return hit
 }
 
-func (hit *InnerHit) Fields(fieldNames ...string) *InnerHit {
-	hit.source.Fields(fieldNames...)
+func (hit *InnerHit) StoredFields(storedFieldNames ...string) *InnerHit {
+	hit.source.StoredFields(storedFieldNames...)
 	return hit
 }
 
-func (hit *InnerHit) NoFields() *InnerHit {
-	hit.source.NoFields()
+func (hit *InnerHit) NoStoredFields() *InnerHit {
+	hit.source.NoStoredFields()
 	return hit
 }
 
@@ -91,13 +91,13 @@ func (hit *InnerHit) FetchSourceContext(fetchSourceContext *FetchSourceContext) 
 	return hit
 }
 
-func (hit *InnerHit) FieldDataFields(fieldDataFields ...string) *InnerHit {
-	hit.source.FieldDataFields(fieldDataFields...)
+func (hit *InnerHit) DocvalueFields(docvalueFields ...string) *InnerHit {
+	hit.source.DocvalueFields(docvalueFields...)
 	return hit
 }
 
-func (hit *InnerHit) FieldDataField(fieldDataField string) *InnerHit {
-	hit.source.FieldDataField(fieldDataField)
+func (hit *InnerHit) DocvalueField(docvalueField string) *InnerHit {
+	hit.source.DocvalueField(docvalueField)
 	return hit
 }
 

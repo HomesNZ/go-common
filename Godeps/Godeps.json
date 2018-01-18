@@ -8,12 +8,22 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/HomesNZ/data-import/util",
-			"Rev": "f70685e163ece2524be53f8e23eaaff55860a709"
+			"Rev": "aba775338a34d0b48596c2d384b6d188901f0712"
 		},
 		{
 			"ImportPath": "github.com/HomesNZ/elastic",
-			"Comment": "v3.0.55-51-g6c08531",
-			"Rev": "6c08531a5118f5053db1c44d3d42d9379de22344"
+			"Comment": "v5.0.53-2-gf145147",
+			"Rev": "f1451472d8390eb5c81763f08cb1549b96204917"
+		},
+		{
+			"ImportPath": "github.com/HomesNZ/elastic/config",
+			"Comment": "v5.0.53-2-gf145147",
+			"Rev": "f1451472d8390eb5c81763f08cb1549b96204917"
+		},
+		{
+			"ImportPath": "github.com/HomesNZ/elastic/uritemplates",
+			"Comment": "v5.0.53-2-gf145147",
+			"Rev": "f1451472d8390eb5c81763f08cb1549b96204917"
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -438,14 +448,6 @@
 			"Rev": "83f1503f771a82af8a31f358eb825e9efb5dae6c"
 		},
 		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "1358eff22f0dd0c54fc521042cc607f6ff4b531a"
-		},
-		{
-			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "1358eff22f0dd0c54fc521042cc607f6ff4b531a"
-		},
-		{
 			"ImportPath": "golang.org/x/sys/unix",
 			"Rev": "324e1375807370c3934e14f3a97e7d160832f6b4"
 		},
@@ -473,16 +475,6 @@
 			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
 			"Comment": "r2015.12.06-2-g03c9f3e",
 			"Rev": "03c9f3ee4c14c8e51ee521a6a7d0425658dd6f64"
-		},
-		{
-			"ImportPath": "gopkg.in/olivere/elastic.v3/backoff",
-			"Comment": "v3.0.54",
-			"Rev": "3f5e619b7a90ff8d4ad81a53ca8e74ee79b83b42"
-		},
-		{
-			"ImportPath": "gopkg.in/olivere/elastic.v3/uritemplates",
-			"Comment": "v3.0.54",
-			"Rev": "3f5e619b7a90ff8d4ad81a53ca8e74ee79b83b42"
 		},
 		{
 			"ImportPath": "gopkg.in/redsync.v1",

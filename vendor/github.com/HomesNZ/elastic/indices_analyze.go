@@ -5,18 +5,17 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
-	"golang.org/x/net/context"
-
-	"gopkg.in/olivere/elastic.v3/uritemplates"
+	"github.com/HomesNZ/elastic/uritemplates"
 )
 
 // IndicesAnalyzeService performs the analysis process on a text and returns
 // the tokens breakdown of the text.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-analyze.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-analyze.html
 // for detail.
 type IndicesAnalyzeService struct {
 	client      *Client
@@ -165,13 +164,8 @@ func (s *IndicesAnalyzeService) buildURL() (string, url.Values, error) {
 	return path, params, nil
 }
 
-// Do will execute the request.
-func (s *IndicesAnalyzeService) Do() (*IndicesAnalyzeResponse, error) {
-	return s.DoC(nil)
-}
-
-// DoC will execute the request with the given context.
-func (s *IndicesAnalyzeService) DoC(ctx context.Context) (*IndicesAnalyzeResponse, error) {
+// Do will execute the request with the given context.
+func (s *IndicesAnalyzeService) Do(ctx context.Context) (*IndicesAnalyzeResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
 		return nil, err
@@ -191,11 +185,11 @@ func (s *IndicesAnalyzeService) DoC(ctx context.Context) (*IndicesAnalyzeRespons
 	} else {
 		// Request parameters are deprecated in 5.1.1, and we must use a JSON
 		// structure in the body to pass the parameters.
-		// See https://www.elastic.co/guide/en/elasticsearch/reference/5.1/indices-analyze.html
+		// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-analyze.html
 		body = s.request
 	}
 
-	res, err := s.client.PerformRequestC(ctx, "POST", path, params, body)
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}

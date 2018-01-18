@@ -5,15 +5,19 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/url"
 	"strings"
 	"sync"
 
-	"golang.org/x/net/context"
+	"github.com/HomesNZ/elastic/uritemplates"
+)
 
-	"gopkg.in/olivere/elastic.v3/uritemplates"
+const (
+	// DefaultScrollKeepAlive is the default time a scroll cursor will be kept alive.
+	DefaultScrollKeepAlive = "5m"
 )
 
 // ScrollService iterates over pages of search results from Elasticsearch.
@@ -41,7 +45,7 @@ func NewScrollService(client *Client) *ScrollService {
 	builder := &ScrollService{
 		client:    client,
 		ss:        NewSearchSource(),
-		keepAlive: defaultKeepAlive,
+		keepAlive: DefaultScrollKeepAlive,
 	}
 	return builder
 }
@@ -113,10 +117,19 @@ func (s *ScrollService) Query(query Query) *ScrollService {
 
 // PostFilter is executed as the last filter. It only affects the
 // search hits but not facets. See
-// http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-request-post-filter.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-post-filter.html
 // for details.
 func (s *ScrollService) PostFilter(postFilter Query) *ScrollService {
 	s.ss = s.ss.PostFilter(postFilter)
+	return s
+}
+
+// Slice allows slicing the scroll request into several batches.
+// This is supported in Elasticsearch 5.0 or later.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-scroll.html#sliced-scroll
+// for details.
+func (s *ScrollService) Slice(sliceQuery Query) *ScrollService {
+	s.ss = s.ss.Slice(sliceQuery)
 	return s
 }
 
@@ -134,7 +147,7 @@ func (s *ScrollService) FetchSourceContext(fetchSourceContext *FetchSourceContex
 }
 
 // Version can be set to true to return a version for each search hit.
-// See http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-request-version.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-version.html.
 func (s *ScrollService) Version(version bool) *ScrollService {
 	s.ss = s.ss.Version(version)
 	return s
@@ -216,13 +229,7 @@ func (s *ScrollService) ScrollId(scrollId string) *ScrollService {
 
 // Do returns the next search result. It will return io.EOF as error if there
 // are no more search results.
-func (s *ScrollService) Do() (*SearchResult, error) {
-	return s.DoC(nil)
-}
-
-// DoC returns the next search result. It will return io.EOF as error if there
-// are no more search results.
-func (s *ScrollService) DoC(ctx context.Context) (*SearchResult, error) {
+func (s *ScrollService) Do(ctx context.Context) (*SearchResult, error) {
 	s.mu.RLock()
 	nextScrollId := s.scrollId
 	s.mu.RUnlock()
@@ -251,7 +258,7 @@ func (s *ScrollService) Clear(ctx context.Context) error {
 		ScrollId: []string{scrollId},
 	}
 
-	_, err := s.client.PerformRequestC(ctx, "DELETE", path, params, body)
+	_, err := s.client.PerformRequest(ctx, "DELETE", path, params, body)
 	if err != nil {
 		return err
 	}
@@ -276,7 +283,7 @@ func (s *ScrollService) first(ctx context.Context) (*SearchResult, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequestC(ctx, "POST", path, params, body)
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -369,17 +376,6 @@ func (s *ScrollService) bodyFirst() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		// Slicing (in ES 5.x+)
-		/*
-			if s.slice != nil {
-				src, err := s.slice.Source()
-				if err != nil {
-					return nil, err
-				}
-				body["slice"] = src
-			}
-		*/
 	}
 
 	return body, nil
@@ -401,7 +397,7 @@ func (s *ScrollService) next(ctx context.Context) (*SearchResult, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequestC(ctx, "POST", path, params, body)
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}
