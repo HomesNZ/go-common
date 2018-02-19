@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/HomesNZ/go-common/env"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/HomesNZ/elastic"
 	"github.com/smartystreets/go-aws-auth"
@@ -41,6 +42,9 @@ func initConn() {
 		// Handle error
 		panic(err)
 	}
+
+	logrus.WithField("package", "elasticsearch").
+		Info("elasticsearch.Conn() is deprecated, use .New() instead")
 }
 
 // Conn returns a connection to ElasticSearch
