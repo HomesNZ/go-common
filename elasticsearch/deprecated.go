@@ -44,7 +44,7 @@ func initConn() {
 	}
 
 	logrus.WithField("package", "elasticsearch").
-		Info("elasticsearch.Conn() is deprecated, use .New() instead")
+		Info("elasticsearch.Conn() is deprecated, use elastic.NewClient() instead")
 }
 
 // Conn returns a connection to ElasticSearch

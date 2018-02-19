@@ -7,15 +7,8 @@ import (
 	awsauth "github.com/smartystreets/go-aws-auth"
 )
 
-func New(cfg ...elastic.ClientOptionFunc) (*elastic.Client, error) {
-	// Set some defaults
-	options := []elastic.ClientOptionFunc{
-		elastic.SetSniff(false), // causes issues within AWS, so off by default
-	}
-
-	return elastic.NewClient(append(options, cfg...)...)
-}
-
+// AWSAccessKey configures the client to sign each outgoing request with AWS V4
+// signatures, using an IAM access key ID / secret key.
 func AWSAccessKey(accessKeyID, secretAccessKey string) elastic.ClientOptionFunc {
 	return elastic.SetPrepareRequest(func(req *http.Request) {
 		awsauth.Sign(req, awsauth.Credentials{
@@ -25,6 +18,8 @@ func AWSAccessKey(accessKeyID, secretAccessKey string) elastic.ClientOptionFunc 
 	})
 }
 
+// AWSSecurityToken configures the client to sign each outgoing request with AWS
+// V4 signatures, using a security token.
 func AWSSecurityToken(securityToken string) elastic.ClientOptionFunc {
 	return elastic.SetPrepareRequest(func(req *http.Request) {
 		awsauth.Sign(req, awsauth.Credentials{
