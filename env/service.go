@@ -21,5 +21,5 @@ func MustGetServicePort(serviceName string) string {
 		return h
 	}
 
-	return MustGetString(serviceName + "_HOST")
+	return MustGetString(serviceName + "_PORT")
 }
