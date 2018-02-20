@@ -5,6 +5,7 @@ func MustGetServiceHost(serviceName string) string {
 }
 
 func MustGetServiceHostname(serviceName string) string {
+	// Try Kubernetes vars first
 	h := GetString(serviceName+"_SERVICE_HOST", "")
 	if h != "" {
 		return h
@@ -14,6 +15,7 @@ func MustGetServiceHostname(serviceName string) string {
 }
 
 func MustGetServicePort(serviceName string) string {
+	// Try Kubernetes vars first
 	h := GetString(serviceName+"_SERVICE_PORT", "")
 	if h != "" {
 		return h
