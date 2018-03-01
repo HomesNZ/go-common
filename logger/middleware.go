@@ -23,7 +23,7 @@ func getFirst(h http.Header, names ...string) string {
 func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logged := &loggedResponseWriter{
+			logged := loggedResponseWriter{
 				ResponseWriter: w,
 				Status:         200,
 			}
@@ -50,7 +50,15 @@ func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 				}).Info("Handled request")
 			}(time.Now())
 
-			next.ServeHTTP(logged, r)
+			if f, ok := w.(http.Flusher); ok {
+				loggedFlusher := loggedResponseWriteFlusher{
+					loggedResponseWriter: logged,
+					Flusher:              f,
+				}
+				next.ServeHTTP(&loggedFlusher, r)
+			} else {
+				next.ServeHTTP(&logged, r)
+			}
 		})
 	}
 }
@@ -65,4 +73,9 @@ type loggedResponseWriter struct {
 func (w *loggedResponseWriter) WriteHeader(statusCode int) {
 	w.Status = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+type loggedResponseWriteFlusher struct {
+	loggedResponseWriter
+	http.Flusher
 }
