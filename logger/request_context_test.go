@@ -22,7 +22,8 @@ var _ = Describe("logger", func() {
 			r.Header.Set("X-Request-Id", reqID)
 			ctx := populateRequestContext(context.Background(), r)
 
-			rctx := retrieveRequestContext(ctx)
+			rctx, ok := retrieveRequestContext(ctx)
+			Expect(ok).To(BeTrue())
 			Expect(rctx.RemoteAddr).To(Equal(remoteAddr))
 			Expect(rctx.RequestID).To(Equal(reqID))
 		})
@@ -38,7 +39,8 @@ var _ = Describe("logger", func() {
 				r.Header.Set("X-Request-Id", reqID)
 				ctx := populateRequestContext(context.Background(), r)
 
-				rctx := retrieveRequestContext(ctx)
+				rctx, ok := retrieveRequestContext(ctx)
+				Expect(ok).To(BeTrue())
 				Expect(rctx.RemoteAddr).To(Equal(remoteAddr))
 				Expect(rctx.RequestID).To(Equal(reqID))
 			})
@@ -47,8 +49,9 @@ var _ = Describe("logger", func() {
 
 	Describe("retrieveRequestContext", func() {
 		It("returns an empty (but valid) context if not initialized", func() {
-			rctx := retrieveRequestContext(context.Background())
-			Expect(rctx).To(Equal(RequestContext{}))
+			rctx, ok := retrieveRequestContext(context.Background())
+			Expect(ok).To(BeFalse())
+			Expect(rctx).To(Equal(requestContext{}))
 		})
 	})
 

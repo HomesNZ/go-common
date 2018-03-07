@@ -10,16 +10,19 @@ import (
 type contextKey int
 
 const (
-	ContextKeyRequestContext contextKey = iota
+	contextKeyRequestContext contextKey = iota
 )
 
-type RequestContext struct {
+type requestContext struct {
 	RemoteAddr string
 	RequestID  string
 }
 
 func FieldsFromContext(ctx context.Context) logrus.Fields {
-	rctx := retrieveRequestContext(ctx)
+	rctx, ok := retrieveRequestContext(ctx)
+	if !ok {
+		return logrus.Fields{}
+	}
 
 	return logrus.Fields{
 		"remote":     rctx.RemoteAddr,
@@ -33,21 +36,17 @@ func populateRequestContext(ctx context.Context, r *http.Request) context.Contex
 		remoteAddr = realIP
 	}
 
-	requestContext := RequestContext{
+	rctx := requestContext{
 		RemoteAddr: remoteAddr,
 		RequestID:  getFirst(r.Header, "X-Request-Id", "X-Amzn-Trace-Id"),
 	}
 
-	return context.WithValue(ctx, ContextKeyRequestContext, requestContext)
+	return context.WithValue(ctx, contextKeyRequestContext, rctx)
 }
 
-func retrieveRequestContext(ctx context.Context) RequestContext {
-	rctx := ctx.Value(ContextKeyRequestContext)
-	if rctx == nil {
-		return RequestContext{}
-	}
-
-	return rctx.(RequestContext)
+func retrieveRequestContext(ctx context.Context) (requestContext, bool) {
+	rctx, ok := ctx.Value(contextKeyRequestContext).(requestContext)
+	return rctx, ok
 }
 
 func getFirst(h http.Header, names ...string) string {
