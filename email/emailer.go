@@ -1,8 +1,7 @@
 package email
 
 import (
-	"fmt"
-
+	"github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -67,18 +66,18 @@ func (e *Email) Send() error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case ses.ErrCodeMessageRejected:
-				fmt.Println(ses.ErrCodeMessageRejected, aerr.Error())
+				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeMessageRejected).Error()
 			case ses.ErrCodeMailFromDomainNotVerifiedException:
-				fmt.Println(ses.ErrCodeMailFromDomainNotVerifiedException, aerr.Error())
+				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeMailFromDomainNotVerifiedException).Error()
 			case ses.ErrCodeConfigurationSetDoesNotExistException:
-				fmt.Println(ses.ErrCodeConfigurationSetDoesNotExistException, aerr.Error())
+				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeConfigurationSetDoesNotExistException).Error()
 			default:
-				fmt.Println(aerr.Error())
+				logrus.WithError(aerr).Error()
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
+			logrus.WithError(err).Error()
 		}
 	}
 	return nil
