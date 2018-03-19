@@ -1,56 +1,84 @@
 package email
 
 import (
-	"net"
-	"net/smtp"
-	"sync"
-
-	"github.com/HomesNZ/go-common/env"
 	"github.com/Sirupsen/logrus"
-	"github.com/jordan-wright/email"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ses"
 )
 
-var (
-	contextLogger = logrus.WithField("email", "sender")
-	once          sync.Once
-	Emailer       EmailSender
-)
+// CharSet is a default AWS character set
+const CharSet = "UTF-8"
 
-type EmailSender struct {
-	Username       string
-	Password       string
-	ServerHostPort string
+var awsSession *session.Session
+
+// Init creates a new session for SES requests
+func Init() error {
+	var err error
+	awsSession, err = session.NewSession(&aws.Config{
+		Region:      aws.String("us-west-2"),
+		Credentials: credentials.NewEnvCredentials(),
+	})
+	return err
 }
 
-func InitEmailer() {
-	once.Do(func() {
-		Emailer = EmailSender{
-			ServerHostPort: env.MustGetString("SMTP_HOST"),
-			Username:       env.MustGetString("SMTP_USER"),
-			Password:       env.MustGetString("SMTP_PASSWORD"),
-		}
-	})
+// Email represents a very basic email structure
+type Email struct {
+	To          []*string
+	CCAddresses []*string
+	From        string
+	Subject     string
+	Body        string
 }
 
 // Send sends a simple email via a smtp gateway using TLS
-func Send(content *Email) error {
-	InitEmailer()
-	host, _, _ := net.SplitHostPort(Emailer.ServerHostPort)
+func (e *Email) Send() error {
+	svc := ses.New(awsSession)
 
-	auth := smtp.PlainAuth("", Emailer.Username, Emailer.Password, host)
-
-	eml := &email.Email{
-		To:      []string{content.To},
-		From:    content.From,
-		Subject: content.Subject,
-		Text:    []byte(content.Body),
+	input := &ses.SendEmailInput{
+		Source: aws.String(e.From),
+		Destination: &ses.Destination{
+			// CcAddresses: e.CCAddresses,
+			ToAddresses: e.To,
+		},
+		Message: &ses.Message{
+			Body: &ses.Body{
+				// TODO add html handling
+				// Html: &ses.Content{
+				// 	Charset: nil,
+				// 	Data:    nil,
+				// },
+				Text: &ses.Content{
+					Charset: aws.String(CharSet),
+					Data:    aws.String(e.Body),
+				},
+			},
+			Subject: &ses.Content{
+				Charset: aws.String(CharSet),
+				Data:    aws.String(e.Subject),
+			},
+		},
 	}
-
-	if content.Attachment != "" {
-		_, err := eml.AttachFile(content.Attachment)
-		if err != nil {
-			return err
+	_, err := svc.SendEmail(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case ses.ErrCodeMessageRejected:
+				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeMessageRejected).Error()
+			case ses.ErrCodeMailFromDomainNotVerifiedException:
+				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeMailFromDomainNotVerifiedException).Error()
+			case ses.ErrCodeConfigurationSetDoesNotExistException:
+				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeConfigurationSetDoesNotExistException).Error()
+			default:
+				logrus.WithError(aerr).Error()
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			logrus.WithError(err).Error()
 		}
 	}
-	return eml.Send(Emailer.ServerHostPort, auth)
+	return nil
 }
