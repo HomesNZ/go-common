@@ -62,28 +62,7 @@ func (m *Mailer) Send(e Email) error {
 // MustSend sends a simple email via AWS SES
 // MustSend will log any errors that occur, but they will not be returned
 func (m *Mailer) MustSend(e Email) {
-	svc := ses.New(m.Session)
-
-	input := &ses.SendEmailInput{
-		Source: aws.String(e.From),
-		Destination: &ses.Destination{
-			// CcAddresses: e.CCAddresses,
-			ToAddresses: e.To,
-		},
-		Message: &ses.Message{
-			Body: &ses.Body{
-				Text: &ses.Content{
-					Charset: aws.String(CharSet),
-					Data:    aws.String(e.Body),
-				},
-			},
-			Subject: &ses.Content{
-				Charset: aws.String(CharSet),
-				Data:    aws.String(e.Subject),
-			},
-		},
-	}
-	_, err := svc.SendEmail(input)
+	err := m.Send(e)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
