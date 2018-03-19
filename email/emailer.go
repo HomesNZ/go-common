@@ -4,7 +4,6 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
 )
@@ -12,16 +11,16 @@ import (
 // CharSet is a default AWS character set
 const CharSet = "UTF-8"
 
-var awsSession *session.Session
+type Mailer struct {
+	Session *session.Session
+}
 
-// Init creates a new session for SES requests
-func Init() error {
-	var err error
-	awsSession, err = session.NewSession(&aws.Config{
-		Region:      aws.String("us-west-2"),
-		Credentials: credentials.NewEnvCredentials(),
-	})
-	return err
+// NewClient creates a new AWS session from conf and returns a Mailer object
+func NewClient(conf *aws.Config) (*Mailer, error) {
+	s, err := session.NewSession(conf)
+	return &Mailer{
+		Session: s,
+	}, err
 }
 
 // Email represents a very basic email structure
@@ -33,9 +32,9 @@ type Email struct {
 	Body        string
 }
 
-// Send sends a simple email via a smtp gateway using TLS
-func (e *Email) Send() error {
-	svc := ses.New(awsSession)
+// Send sends a simple email via AWS SES
+func (m *Mailer) Send(e Email) error {
+	svc := ses.New(m.Session)
 
 	input := &ses.SendEmailInput{
 		Source: aws.String(e.From),
@@ -45,11 +44,6 @@ func (e *Email) Send() error {
 		},
 		Message: &ses.Message{
 			Body: &ses.Body{
-				// TODO add html handling
-				// Html: &ses.Content{
-				// 	Charset: nil,
-				// 	Data:    nil,
-				// },
 				Text: &ses.Content{
 					Charset: aws.String(CharSet),
 					Data:    aws.String(e.Body),
@@ -62,6 +56,13 @@ func (e *Email) Send() error {
 		},
 	}
 	_, err := svc.SendEmail(input)
+	return err
+}
+
+// MustSend sends a simple email via AWS SES
+// MustSend will log any errors that occur, but they will not be returned
+func (m *Mailer) MustSend(e Email) {
+	err := m.Send(e)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -80,5 +81,5 @@ func (e *Email) Send() error {
 			logrus.WithError(err).Error()
 		}
 	}
-	return nil
+	return
 }
