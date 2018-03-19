@@ -1,9 +1,7 @@
 package email
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
@@ -12,16 +10,13 @@ import (
 // CharSet is a default AWS character set
 const CharSet = "UTF-8"
 
-var awsSession *session.Session
-
-// Init creates a new session for SES requests
-func Init() error {
-	var err error
-	awsSession, err = session.NewSession(&aws.Config{
-		Region:      aws.String("us-west-2"),
-		Credentials: credentials.NewEnvCredentials(),
-	})
-	return err
+// NewSession initialises an AWS session
+func NewSession(sesRegion string) (*session.Session, error) {
+	return session.NewSession(
+		&aws.Config{
+			Region:      aws.String(sesRegion),
+			Credentials: credentials.NewEnvCredentials(),
+		})
 }
 
 // Email represents a very basic email structure
@@ -34,8 +29,8 @@ type Email struct {
 }
 
 // Send sends a simple email via a smtp gateway using TLS
-func (e *Email) Send() error {
-	svc := ses.New(awsSession)
+func (e *Email) Send(sess *session.Session) error {
+	svc := ses.New(sess)
 
 	input := &ses.SendEmailInput{
 		Source: aws.String(e.From),
@@ -45,11 +40,6 @@ func (e *Email) Send() error {
 		},
 		Message: &ses.Message{
 			Body: &ses.Body{
-				// TODO add html handling
-				// Html: &ses.Content{
-				// 	Charset: nil,
-				// 	Data:    nil,
-				// },
 				Text: &ses.Content{
 					Charset: aws.String(CharSet),
 					Data:    aws.String(e.Body),
@@ -62,23 +52,5 @@ func (e *Email) Send() error {
 		},
 	}
 	_, err := svc.SendEmail(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case ses.ErrCodeMessageRejected:
-				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeMessageRejected).Error()
-			case ses.ErrCodeMailFromDomainNotVerifiedException:
-				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeMailFromDomainNotVerifiedException).Error()
-			case ses.ErrCodeConfigurationSetDoesNotExistException:
-				logrus.WithError(aerr).WithField("Error Code", ses.ErrCodeConfigurationSetDoesNotExistException).Error()
-			default:
-				logrus.WithError(aerr).Error()
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			logrus.WithError(err).Error()
-		}
-	}
-	return nil
+	return err
 }
