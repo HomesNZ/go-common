@@ -58,6 +58,12 @@ func (db *RS) Open() {
 	if err != nil {
 		log.WithError(err).Fatal(ErrUnableToParseDBConnection)
 	}
+	if max := env.GetInt("REDSHIFT_MAX_IDLE_CONNS", 0); max > 0 {
+		c.SetMaxIdleConns(max)
+	}
+	if max := env.GetInt("REDSHIFT_MAX_OPEN_CONNS", 0); max > 0 {
+		c.SetMaxOpenConns(max)
+	}
 
 	db.Conn = c
 
