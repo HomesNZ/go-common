@@ -63,6 +63,27 @@ func (p Point) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (p *Point) UnmarshalJSON(b []byte) error {
+	var v struct {
+		Lat  float64 `json:"lat"`
+		Long float64 `json:"long"`
+		SRID int     `json:"srid"`
+	}
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	p.Lat = v.Lat
+	p.Long = v.Long
+	switch v.SRID {
+	case WGS84, NZTM:
+		p.SRID = v.SRID
+	default:
+		p.SRID = WGS84
+	}
+	return nil
+}
+
 func (p Point) String() string {
 	if p.IsNull() {
 		return "NULL"
