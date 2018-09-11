@@ -79,9 +79,7 @@ func (e ErrUnableToParseDuration) Error() string {
 }
 
 // InitEnv initializes the environment variables.
-func InitEnv() {
-	paths := []string{}
-
+func InitEnv(paths ...string) {
 	// Check to see if `.env` and `.env.default` exist before attempting to load environment vars from them.
 	if _, err := os.Stat(".env"); err == nil {
 		paths = append(paths, ".env")
