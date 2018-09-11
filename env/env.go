@@ -79,6 +79,8 @@ func (e ErrUnableToParseDuration) Error() string {
 }
 
 // InitEnv initializes the environment variables.
+// Paths: Is intended as a relative directory insert for new ENV files
+// ENV supplied this way from a directory containing .env or .env.default may be overwritten
 func InitEnv(paths ...string) {
 	// Check to see if `.env` and `.env.default` exist before attempting to load environment vars from them.
 	if _, err := os.Stat(".env"); err == nil {
