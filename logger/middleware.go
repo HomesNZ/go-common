@@ -23,10 +23,7 @@ func getFirst(h http.Header, names ...string) string {
 func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logged := loggedResponseWriter{
-				ResponseWriter: w,
-				Status:         200,
-			}
+			var status int
 			defer func(begin time.Time) {
 				// Try to get the real IP
 				remoteAddr := r.RemoteAddr
@@ -43,22 +40,24 @@ func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 				}
 				latency := time.Since(begin)
 				entry.WithFields(logrus.Fields{
-					"status":                                logged.Status,
-					"text_status":                           http.StatusText(logged.Status),
+					"status":                                status,
+					"text_status":                           http.StatusText(status),
 					"took":                                  latency,
 					fmt.Sprintf("measure#%s.latency", name): latency.Nanoseconds(),
 				}).Info("Handled request")
 			}(time.Now())
 
-			if f, ok := w.(http.Flusher); ok {
-				loggedFlusher := loggedResponseWriteFlusher{
-					loggedResponseWriter: &logged,
-					Flusher:              f,
-				}
-				next.ServeHTTP(&loggedFlusher, r)
-			} else {
-				next.ServeHTTP(&logged, r)
+			var logged http.ResponseWriter = &loggedResponseWriter{
+				ResponseWriter: w,
+				Status:         &status,
 			}
+			if f, ok := w.(http.Flusher); ok {
+				logged = responseWriteFlusher{
+					ResponseWriter: logged,
+					Flusher:        f,
+				}
+			}
+			next.ServeHTTP(logged, r)
 		})
 	}
 }
@@ -67,15 +66,15 @@ func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 // logging.
 type loggedResponseWriter struct {
 	http.ResponseWriter
-	Status int
+	Status *int
 }
 
 func (w *loggedResponseWriter) WriteHeader(statusCode int) {
-	w.Status = statusCode
+	*w.Status = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-type loggedResponseWriteFlusher struct {
-	*loggedResponseWriter
+type responseWriteFlusher struct {
+	http.ResponseWriter
 	http.Flusher
 }
