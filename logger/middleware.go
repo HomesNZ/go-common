@@ -43,16 +43,16 @@ func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 				}
 				latency := time.Since(begin)
 				entry.WithFields(logrus.Fields{
-					"status":      logged.Status,
-					"text_status": http.StatusText(logged.Status),
-					"took":        latency,
+					"status":                                logged.Status,
+					"text_status":                           http.StatusText(logged.Status),
+					"took":                                  latency,
 					fmt.Sprintf("measure#%s.latency", name): latency.Nanoseconds(),
 				}).Info("Handled request")
 			}(time.Now())
 
 			if f, ok := w.(http.Flusher); ok {
 				loggedFlusher := loggedResponseWriteFlusher{
-					loggedResponseWriter: logged,
+					loggedResponseWriter: &logged,
 					Flusher:              f,
 				}
 				next.ServeHTTP(&loggedFlusher, r)
@@ -76,6 +76,6 @@ func (w *loggedResponseWriter) WriteHeader(statusCode int) {
 }
 
 type loggedResponseWriteFlusher struct {
-	loggedResponseWriter
+	*loggedResponseWriter
 	http.Flusher
 }
