@@ -8,16 +8,22 @@ import (
 // Address is a complete New Zealand address with all the required fields to
 // format into a human-readable address string.
 type Address struct {
+	// Identifier is for a preformatted unit type/identifier, street number, and
+	// street alpha. You can use this instead of the separate address identifier
+	// fields.
+	Identifier string `json:"identifier"`
+
 	UnitType         string `json:"unit_type"`
 	UnitIdentifier   string `json:"unit_identifier"`
 	StreetNumber     int    `json:"street_number"`
 	StreetNumberHigh int    `json:"street_number_high"`
 	StreetAlpha      string `json:"street_alpha"`
-	StreetName       string `json:"street_name"`
-	StreetType       string `json:"street_type"`
-	StreetDirection  string `json:"street_direction"`
-	Suburb           string `json:"suburb"`
-	City             string `json:"city"`
+
+	StreetName      string `json:"street_name"`
+	StreetType      string `json:"street_type"`
+	StreetDirection string `json:"street_direction"`
+	Suburb          string `json:"suburb"`
+	City            string `json:"city"`
 
 	BuildingName string `json:"building_name"`
 	Floor        string `json:"floor"`
@@ -58,17 +64,25 @@ func (a Address) Display() string {
 
 	var identifierStreet string
 	street := titleCase(a.Street())
-	if a.StreetNumber != 0 {
+	if a.Identifier != "" {
+		identifierStreet += a.Identifier
+
+		if street != "" {
+			identifierStreet += " "
+		}
+	} else if a.StreetNumber != 0 {
 		if a.UnitIdentifier != "" && a.BuildingName == "" {
 			if a.UnitType != "" {
 				identifierStreet += titleCase(a.UnitType) + " "
 			}
 			identifierStreet += strings.ToUpper(a.UnitIdentifier) + "/"
 		}
+
 		identifierStreet += strconv.Itoa(a.StreetNumber) + strings.ToUpper(a.StreetAlpha)
 		if a.StreetNumberHigh != 0 {
 			identifierStreet += "-" + strconv.Itoa(a.StreetNumberHigh)
 		}
+
 		if street != "" {
 			identifierStreet += " "
 		}
