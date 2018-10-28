@@ -51,6 +51,28 @@ var _ = Describe("Address", func() {
 			"Flat 123/5A Cambridge Terrace",
 		),
 		Entry(
+			"a full set of address identifiers passed as 'identifier' and street name/type",
+			Address{
+				Identifier: "FLAT 123/5A",
+				StreetName: "Cambridge",
+				StreetType: "Terrace",
+			},
+			"FLAT 123/5A Cambridge Terrace",
+		),
+		Entry(
+			"a full set of address identifiers passed as 'identifier' AND separate address fields and street name/type",
+			Address{
+				Identifier:     "FLAT 123/5A",
+				UnitType:       "FLAT",
+				UnitIdentifier: "123",
+				StreetNumber:   5,
+				StreetAlpha:    "A",
+				StreetName:     "Cambridge",
+				StreetType:     "Terrace",
+			},
+			"FLAT 123/5A Cambridge Terrace",
+		),
+		Entry(
 			"building name",
 			Address{
 				BuildingName: "Homes",
