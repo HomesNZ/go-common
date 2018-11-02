@@ -2,7 +2,7 @@ package redis
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 )
 
 // Delete removes a key from redis and returns its value
