@@ -4,10 +4,11 @@ import (
 	. "github.com/HomesNZ/go-common/redis"
 	"github.com/rafaeljusto/redigomock"
 
-	"github.com/garyburd/redigo/redis"
+	"time"
+
+	"github.com/gomodule/redigo/redis"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 )
 
 var _ = Describe("Redis", func() {
