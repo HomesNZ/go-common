@@ -55,6 +55,8 @@ type Consumer struct {
 	redsyncEnabled bool
 	redsync        *redsync.Redsync
 	redsyncOptions []redsync.Option
+
+	batchSize int
 }
 
 // NewConsumer returns a pointer to a fresh Consumer instance.
@@ -63,6 +65,7 @@ func NewConsumer(conn *sqs.SQS, queueName string, handler interface{}) *Consumer
 		conn:      conn,
 		queueName: queueName,
 		handler:   handler,
+		batchSize: maxMessages,
 	}
 }
 
@@ -83,6 +86,15 @@ func (c *Consumer) RedsyncOptions(options []redsync.Option) {
 		return
 	}
 	c.redsyncOptions = options
+}
+
+func (c *Consumer) BatchSize(size int) error {
+	if c.started {
+		return errors.New("BatchSize() called while consumer running")
+	}
+
+	c.batchSize = size
+	return nil
 }
 
 func (c Consumer) redsyncDefaultOptions() []redsync.Option {
@@ -162,7 +174,7 @@ func (c Consumer) receive() {
 			return
 		default:
 			contextLogger.Debug("waiting for request...")
-			response, err := c.queue.ReceiveMessage(maxMessages)
+			response, err := c.queue.ReceiveMessage(c.batchSize)
 			if err != nil {
 				contextLogger.WithError(err).Errorf("Error occurred while receiving from SQS queue (%s), sleeping for %d seconds", err.Error(), secondsToSleepOnError)
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
