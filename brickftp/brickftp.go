@@ -64,9 +64,8 @@ func (c Client) Move(oldName string, newName string) error {
 	if err != nil {
 		return err
 	}
-	const successStatus = http.StatusCreated
-	if res.StatusCode != successStatus {
-		return c.err("Move", "expected status %d, got: %d filename: %s", successStatus, res.StatusCode, oldName)
+	if (res.StatusCode < 200) && (res.StatusCode > 300) {
+		return c.err("Move", "expected status, got: %d filename: %s", res.StatusCode, oldName)
 	}
 	return nil
 }
