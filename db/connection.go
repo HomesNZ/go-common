@@ -35,13 +35,13 @@ var (
 )
 
 // InitConnection creates a new new connection to the database and verifies that it succeeds.
-func InitConnection() {
+func InitConnection(service string) {
 	db := PG{}
-	db.Open()
+	db.Open(service)
 	conn = db.Conn
 
 	if UseORM {
-		ormOnce.Do(InitORM)
+		ormOnce.Do(func() { InitORM(service) })
 	}
 }
 
@@ -65,16 +65,16 @@ type PG struct {
 }
 
 // Conn is the SQL database connection accessor. If the connection is nil, it will be initialized.
-func Conn() *sql.DB {
+func Conn(service string) *sql.DB {
 	if conn == nil {
-		once.Do(InitConnection)
+		once.Do(func() { InitConnection(service) })
 	}
 	return conn
 }
 
 // Open will initialize the database connection or raise an error.
-func (db *PG) Open() {
-	c, err := sql.Open("postgres", db.connectionString())
+func (db *PG) Open(service string) {
+	c, err := sql.Open("postgres", db.connectionString(service))
 	if err != nil {
 		log.WithError(err).Fatal(ErrUnableToParseDBConnection)
 	}
@@ -90,7 +90,7 @@ func (db *PG) Open() {
 // verifyConnection pings the database to verify a connection is established. If the connection cannot be established,
 // it will retry with an exponential back off.
 func (db PG) verifyConnection() error {
-	log.Infof("Attempting to connect to database: %s", db.logSafeConnectionString())
+	log.Infof("Attempting to connect to database: %s", db.logSafeConnectionString("go-common"))
 
 	pingDB := func() error {
 		return db.Conn.Ping()
@@ -111,20 +111,21 @@ func (db PG) verifyConnection() error {
 }
 
 // connectionString returns the database connection string.
-func (db PG) connectionString() string {
+func (db PG) connectionString(service string) string {
 	password := env.GetString("DB_PASSWORD", "")
 	if password != "" {
 		password = ":" + password
 	}
 
 	connString := fmt.Sprintf(
-		"postgres://%s%s@%s:%s/%s?sslmode=%s",
+		"postgres://%s%s@%s:%s/%s?sslmode=%s&application_name=%s",
 		env.GetString("DB_USER", "postgres"),
 		password,
 		env.GetString("DB_HOST", "localhost"),
 		env.GetString("DB_PORT", "5432"),
 		env.MustGetString("DB_NAME"),
 		env.GetString("DB_SSL_MODE", "disable"),
+		service,
 	)
 
 	searchPath := env.GetString("DB_SEARCH_PATH", "")
@@ -136,8 +137,8 @@ func (db PG) connectionString() string {
 
 // logSafeConnectionString is the database connection string with the password replace with `****` so it can be logged
 // without revealing the password.
-func (db PG) logSafeConnectionString() string {
-	c := db.connectionString()
+func (db PG) logSafeConnectionString(service string) string {
+	c := db.connectionString(service)
 
 	password := env.GetString("DB_PASSWORD", "")
 	if password != "" {

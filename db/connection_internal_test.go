@@ -21,8 +21,8 @@ var _ = Describe("PG", func() {
 			It("adds the search_path parameter", func() {
 				db := PG{}
 
-				actual := db.logSafeConnectionString()
-				expected := "postgres://user:****@host:5432/test?sslmode=disable&search_path=public"
+				actual := db.logSafeConnectionString("go-common")
+				expected := "postgres://user:****@host:5432/test?sslmode=disable&application_name=go-common&search_path=public"
 
 				Expect(actual).To(Equal(expected))
 			})
@@ -34,8 +34,8 @@ var _ = Describe("PG", func() {
 
 				db := PG{}
 
-				actual := db.logSafeConnectionString()
-				expected := "postgres://user:****@host:5432/test?sslmode=disable"
+				actual := db.logSafeConnectionString("go-common")
+				expected := "postgres://user:****@host:5432/test?sslmode=disable&application_name=go-common"
 
 				Expect(actual).To(Equal(expected))
 			})
@@ -45,8 +45,8 @@ var _ = Describe("PG", func() {
 			It("replaces the password with stars", func() {
 				db := PG{}
 
-				actual := db.logSafeConnectionString()
-				expected := "postgres://user:****@host:5432/test?sslmode=disable"
+				actual := db.logSafeConnectionString("go-common")
+				expected := "postgres://user:****@host:5432/test?sslmode=disable&application_name=go-common"
 
 				Expect(actual).To(Equal(expected))
 			})
@@ -58,8 +58,8 @@ var _ = Describe("PG", func() {
 
 				db := PG{}
 
-				actual := db.logSafeConnectionString()
-				expected := db.connectionString()
+				actual := db.logSafeConnectionString("go-common")
+				expected := db.connectionString("go-common")
 
 				Expect(actual).To(Equal(expected))
 			})
