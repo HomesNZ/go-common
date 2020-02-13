@@ -45,9 +45,9 @@ func SetConnectionRedshift(db *sql.DB) {
 type RS PG
 
 // ConnRedshift is the SQL database connection accessor. If the connection is nil, it will be initialized.
-func ConnRedshift() *sql.DB {
+func ConnRedshift(service string) *sql.DB {
 	if connRedshift == nil {
-		onceRedshift.Do(InitConnection)
+		onceRedshift.Do(func() { InitConnection(service) })
 	}
 	return connRedshift
 }

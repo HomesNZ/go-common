@@ -20,8 +20,8 @@ var (
 )
 
 // InitORM initializes the ORM connection from the existing connection.
-func InitORM() {
-	g, err := gorm.Open("postgres", Conn())
+func InitORM(service string) {
+	g, err := gorm.Open("postgres", Conn(service))
 	if err != nil {
 		// This shouldnt happen unless our DB settings are malformed?
 		panic(err)
@@ -35,11 +35,11 @@ func InitORM() {
 }
 
 // ORM is the gorm wrapped SQL database connection. If the connection is nil, it will be initialized.
-func ORM() *gorm.DB {
+func ORM(service string) *gorm.DB {
 	UseORM = true
 
-	once.Do(InitConnection)
-	ormOnce.Do(InitORM)
+	once.Do(func() { InitConnection(service) })
+	ormOnce.Do(func() { InitORM(service) })
 	return orm
 }
 
