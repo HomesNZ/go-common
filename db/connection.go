@@ -81,7 +81,7 @@ func (db *PG) Open(service string) {
 
 	db.Conn = c
 
-	err = db.verifyConnection()
+	err = db.verifyConnection(service)
 	if err != nil {
 		log.WithError(err).Fatal(ErrUnableToConnectToDB)
 	}
@@ -89,8 +89,8 @@ func (db *PG) Open(service string) {
 
 // verifyConnection pings the database to verify a connection is established. If the connection cannot be established,
 // it will retry with an exponential back off.
-func (db PG) verifyConnection() error {
-	log.Infof("Attempting to connect to database: %s", db.logSafeConnectionString("go-common"))
+func (db PG) verifyConnection(service string) error {
+	log.Infof("Attempting to connect to database: %s", db.logSafeConnectionString(service))
 
 	pingDB := func() error {
 		return db.Conn.Ping()
