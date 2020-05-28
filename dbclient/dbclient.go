@@ -30,11 +30,11 @@ func connectionConfig(service string) pgx.ConnConfig {
 	return config
 }
 
-// Conn returns pgx connection and error
-func Conn(service string) (c *pgx.ConnPool, err error) {
+// Conn returns pgx connection pool and error
+func Conn(service string, maxConnections int) (c *pgx.ConnPool, err error) {
 	poolConfig := pgx.ConnPoolConfig{
 		ConnConfig:     connectionConfig(service),
-		MaxConnections: 3,
+		MaxConnections: maxConnections,
 	}
 	return pgx.NewConnPool(poolConfig)
 }
