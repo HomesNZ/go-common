@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/HomesNZ/go-common/env"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/HomesNZ/elastic"
 	"github.com/smartystreets/go-aws-auth"

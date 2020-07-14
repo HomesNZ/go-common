@@ -9,7 +9,7 @@ import (
 	redsync "gopkg.in/redsync.v1"
 
 	"github.com/HomesNZ/go-common/redis"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/goamz/goamz/sqs"
 
 	redigo "github.com/gomodule/redigo/redis"

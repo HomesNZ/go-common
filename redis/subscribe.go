@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // Subscribe creates a subscription to the redis publishing system
