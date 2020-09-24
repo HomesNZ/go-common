@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/HomesNZ/go-common/env"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type Option func(*logrus.Logger)

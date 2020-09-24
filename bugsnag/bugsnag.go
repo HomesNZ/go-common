@@ -3,7 +3,7 @@ package bugsnag
 import (
 	"github.com/HomesNZ/go-common/env"
 	"github.com/HomesNZ/go-common/version"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/bugsnag/bugsnag-go"
 )
 

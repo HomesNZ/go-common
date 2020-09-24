@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/HomesNZ/go-common/env"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/cenkalti/backoff"
 
 	"github.com/gomodule/redigo/redis"

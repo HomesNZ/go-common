@@ -3,7 +3,7 @@ package util
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // MustMkdirAll recursively makes the required directories to complete the supplied path. If an error occurs, it will be

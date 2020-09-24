@@ -11,7 +11,7 @@ import (
 	// SQL driver
 	_ "github.com/lib/pq"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/cenkalti/backoff"
 )
 

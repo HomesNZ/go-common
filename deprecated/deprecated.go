@@ -3,7 +3,7 @@ package deprecated
 import (
 	"net/http"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // Deprecated is a middleware which logs a message when a Deprecated endpoint is used. It also attaches a header to the request notifying the consumer of the deprecation

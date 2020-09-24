@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/HomesNZ/go-common/env"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/gorilla/mux"
 	newrelic "github.com/newrelic/go-agent"
 )
