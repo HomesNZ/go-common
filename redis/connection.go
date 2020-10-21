@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/HomesNZ/go-common/env"
-	log "github.com/sirupsen/logrus"
 	"github.com/cenkalti/backoff"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/mna/redisc"
 )
 
 const (
@@ -24,14 +25,14 @@ var (
 	// ErrUnableToConnectToRedis is raised when a connection to redis cannot be established.
 	ErrUnableToConnectToRedis = errors.New("Unable to connect to redis")
 
-	pool *redis.Pool
+	pool *redisc.Cluster
 
 	once sync.Once
 )
 
 // Cache is a pool of connections to a redis cache
 type Cache struct {
-	Pool *redis.Pool
+	Pool *redisc.Cluster
 }
 
 // Conn returns an active connection to the cache
@@ -55,34 +56,52 @@ func CacheConn() Cache {
 // SetConnection triggers the once lock, and returns a pool with the current connection
 func SetConnection(c redis.Conn) Cache {
 	once.Do(func() {})
-
-	redisPool := &redis.Pool{
-		//MaxIdle: 3,
-		//IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			return c, nil
-		},
+	redisPool := &redisc.Cluster{
+		CreatePool:   createPoolFromConn(c),
+		StartupNodes: []string{addr()},
 	}
+	// redisPool := &redis.Pool{
+	// 	//MaxIdle: 3,
+	// 	//IdleTimeout: 240 * time.Second,
+	// 	Dial: ,
+	// }
 
 	return Cache{
 		Pool: redisPool,
 	}
 }
-
-// InitConnection initializes a new redis cache connection pool.
-func InitConnection() {
-	//Creates a pool of connections to redis
-	redisPool := &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		//Dial is an anonymous function which returns a redis.Conn
+func createPoolFromConn(conn redis.Conn) func(address string, options ...redis.DialOption) (*redis.Pool, error) {
+	return func(address string, options ...redis.DialOption) (*redis.Pool, error) {
+		return &redis.Pool{
+			IdleTimeout: 60 * time.Second,
+			// Dial is an anonymous function which returns a redis.Conn
+			Dial: func() (redis.Conn, error) {
+				return conn, nil
+			},
+		}, nil
+	}
+}
+func createPool(address string, options ...redis.DialOption) (*redis.Pool, error) {
+	return &redis.Pool{
+		IdleTimeout: 60 * time.Second,
+		// Dial is an anonymous function which returns a redis.Conn
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", addr())
+			c, err := redis.Dial("tcp", address)
 			if err != nil {
 				return nil, err
 			}
+
 			return c, err
 		},
+	}, nil
+
+}
+
+// InitConnection initializes a new redis cache connection pool.
+func InitConnection() {
+	redisPool := &redisc.Cluster{
+		CreatePool:   createPool,
+		StartupNodes: []string{addr()},
 	}
 
 	err := verifyConnection(redisPool.Get())
