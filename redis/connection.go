@@ -60,11 +60,6 @@ func SetConnection(c redis.Conn) Cache {
 		CreatePool:   createPoolFromConn(c),
 		StartupNodes: []string{addr()},
 	}
-	// redisPool := &redis.Pool{
-	// 	//MaxIdle: 3,
-	// 	//IdleTimeout: 240 * time.Second,
-	// 	Dial: ,
-	// }
 
 	return Cache{
 		Pool: redisPool,
