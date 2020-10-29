@@ -1,4 +1,4 @@
-module github.com/HomesNZ/go-common/encode-response
+module github.com/HomesNZ/go-common/http-encode
 
 go 1.15
 

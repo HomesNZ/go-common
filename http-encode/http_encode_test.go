@@ -1,4 +1,4 @@
-package encode_response
+package http_encode
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package encode_response
+package http_encode
 
 import (
 	"encoding/json"
@@ -36,11 +36,7 @@ func EncodeErrorResponse(logger *logrus.Entry, w http.ResponseWriter, err error)
 	if code == http.StatusNoContent {
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	if err := json.NewEncoder(w).Encode(&res); err != nil {
-		logger.WithError(err).Error(err)
-	}
+	EncodeResponse(logger, w, code, &res)
 }
 
 func EncodeResponse(logger *logrus.Entry, w http.ResponseWriter, httpStatus int, resp interface{}) {
@@ -52,9 +48,5 @@ func EncodeResponse(logger *logrus.Entry, w http.ResponseWriter, httpStatus int,
 }
 
 func EncodeOKResponse(logger *logrus.Entry, w http.ResponseWriter, resp interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		logger.WithError(err).Error(err)
-	}
+	EncodeResponse(logger, w, http.StatusOK, resp)
 }
