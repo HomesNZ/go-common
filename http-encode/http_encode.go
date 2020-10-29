@@ -36,7 +36,7 @@ func EncodeErrorResponse(logger *logrus.Entry, w http.ResponseWriter, err error)
 	if code == http.StatusNoContent {
 		return
 	}
-	EncodeResponse(logger, w, code, &res)
+	EncodeResponse(logger, w, code, res)
 }
 
 func EncodeResponse(logger *logrus.Entry, w http.ResponseWriter, httpStatus int, resp interface{}) {

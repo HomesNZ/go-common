@@ -12,6 +12,7 @@ import (
 	"testing"
 )
 
+// should set 200 status and correct header
 func TestEncodeOKResponse(t *testing.T) {
 	logger := logger.Init(
 		logger.Level("info"),
@@ -30,6 +31,7 @@ func TestEncodeOKResponse(t *testing.T) {
 	assert.Equal(t, resp.Header.Get("Content-Type"), "application/json")
 }
 
+// should set 300 status and correct header
 func TestEncodeResponse(t *testing.T) {
 	logger := logger.Init(
 		logger.Level("info"),
@@ -48,6 +50,7 @@ func TestEncodeResponse(t *testing.T) {
 	assert.Equal(t, resp.Header.Get("Content-Type"), "application/json")
 }
 
+// should set 500 status, correct content-type and return default err msg
 func TestEncodeErrorResponseDefault(t *testing.T) {
 	logger := logger.Init(
 		logger.Level("info"),
@@ -67,6 +70,7 @@ func TestEncodeErrorResponseDefault(t *testing.T) {
 	assert.Equal(t, resp.Header.Get("Content-Type"), "application/json")
 }
 
+// should set 400 status, correct content-type and return default err msg
 func TestEncodeErrorResponseSyntaxError(t *testing.T) {
 	logger := logger.Init(
 		logger.Level("info"),
@@ -87,3 +91,5 @@ func TestEncodeErrorResponseSyntaxError(t *testing.T) {
 	assert.Equal(t, string(body), "{\"error\":\"invalid character 'U' looking for beginning of object key string\"}\n")
 	assert.Equal(t, resp.Header.Get("Content-Type"), "application/json")
 }
+
+//TODO: add tests for validation.Errors and schema.MultiError
