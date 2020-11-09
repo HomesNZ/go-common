@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// SQL_MAX_PLACEHOLDERS is the maximum number of placeholder arguments that postgresql will allow in a single query
+// This is based on the error message returned from overloading this number `PostgreSQL supports maximum of 65535 parameters`
+// and on a stackoverflow comment https://github.com/brianc/node-postgres/issues/1463#issuecomment-333313948
 const SQL_MAX_PLACEHOLDERS = 65535
 
 type Placeholder struct {
