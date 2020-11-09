@@ -18,15 +18,17 @@ func Placeholders(rawArgs []interface{}) []Placeholder {
 	if len(rawArgs) == 0 {
 		return nil
 	}
+
 	var placeholders []Placeholder
-	for i := 0; len(rawArgs) < (i+1)*SQL_MAX_PLACEHOLDERS; i++ {
-		from := i * SQL_MAX_PLACEHOLDERS
-		to := (i + 1) * SQL_MAX_PLACEHOLDERS
-		if to > len(rawArgs) {
+	fields := reflect.ValueOf(rawArgs[0]).NumField()
+	batchSize := SQL_MAX_PLACEHOLDERS / fields
+	for i := 0; i < len(rawArgs); i += batchSize {
+		to := i + batchSize
+		if len(rawArgs) < to {
 			to = len(rawArgs) - 1
 		}
 
-		structArgs := extractArgs(rawArgs[from:to])
+		structArgs := extractArgs(rawArgs[i:to])
 		placeholders = append(placeholders, Placeholder{
 			Placeholders: generatePlaceholders(structArgs),
 			Args:         flattenArgs(structArgs),
