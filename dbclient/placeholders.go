@@ -10,7 +10,7 @@ const SQL_MAX_PLACEHOLDERS = 65535
 
 type Placeholder struct {
 	Placeholders string
-	Args         [][]interface{}
+	Args         []interface{}
 }
 
 // Placeholders converts a given slice of interfaces into a set of postgresql insertion instructions
@@ -26,14 +26,24 @@ func Placeholders(rawArgs []interface{}) []Placeholder {
 			to = len(rawArgs) - 1
 		}
 
-		args := extractArgs(rawArgs[from:to])
+		structArgs := extractArgs(rawArgs[from:to])
 		placeholders = append(placeholders, Placeholder{
-			Placeholders: generatePlaceholders(args),
-			Args:         args,
+			Placeholders: generatePlaceholders(structArgs),
+			Args:         flattenArgs(structArgs),
 		})
 	}
 
 	return placeholders
+}
+
+func flattenArgs(args [][]interface{}) []interface{} {
+	var flattened []interface{}
+	for _, arr := range args {
+		for _, v := range arr {
+			flattened = append(flattened, v)
+		}
+	}
+	return flattened
 }
 
 // extractArgs converts a slice of structs to a slice of slices containing the public fields of the given structs
