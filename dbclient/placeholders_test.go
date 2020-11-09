@@ -1,7 +1,6 @@
 package dbclient
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -15,6 +14,13 @@ func Test_generatePlaceholders(t *testing.T) {
 		args args
 		want string
 	}{
+		{
+			name: "generates valid placeholders for 0 length slice",
+			args: args{
+				args: [][]interface{}{},
+			},
+			want: "",
+		},
 		{
 			name: "generates valid placeholders for 1 length slice without internal commas",
 			args: args{
@@ -65,6 +71,13 @@ func Test_extractArgs(t *testing.T) {
 		args args
 		want [][]interface{}
 	}{
+		{
+			name: "generates valid args for 0 length slice",
+			args: args{
+				args: []interface{}{},
+			},
+			want: [][]interface{}(nil),
+		},
 		{
 			name: "generates valid args for 1 length slice",
 			args: args{
@@ -140,8 +153,7 @@ func Test_extractArgs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := extractArgs(tt.args.args); !reflect.DeepEqual(got, tt.want) {
-				fmt.Println(got)
-				t.Errorf("extractArgs() = %v, want %v", got, tt.want)
+				t.Errorf("extractArgs() = %#v, want %#v", got, tt.want)
 			}
 		})
 	}
