@@ -6,13 +6,34 @@ import (
 	"strings"
 )
 
+const SQL_MAX_PLACEHOLDERS = 65535
+
+type Placeholder struct {
+	Placeholders string
+	Args         [][]interface{}
+}
+
 // Placeholders converts a given slice of interfaces into a set of postgresql insertion instructions
-func Placeholders(rawArgs []interface{}) (string, [][]interface{}) {
+func Placeholders(rawArgs []interface{}) []Placeholder {
 	if len(rawArgs) == 0 {
-		return "", nil
+		return nil
 	}
-	args := extractArgs(rawArgs)
-	return generatePlaceholders(args), args
+	var placeholders []Placeholder
+	for i := 0; len(rawArgs) < (i+1)*SQL_MAX_PLACEHOLDERS; i++ {
+		from := i * SQL_MAX_PLACEHOLDERS
+		to := (i + 1) * SQL_MAX_PLACEHOLDERS
+		if to > len(rawArgs) {
+			to = len(rawArgs) - 1
+		}
+
+		args := extractArgs(rawArgs[from:to])
+		placeholders = append(placeholders, Placeholder{
+			Placeholders: generatePlaceholders(args),
+			Args:         args,
+		})
+	}
+
+	return placeholders
 }
 
 // extractArgs converts a slice of structs to a slice of slices containing the public fields of the given structs
