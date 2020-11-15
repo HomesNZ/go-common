@@ -11,8 +11,15 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
+type TracerConfig struct {
+	Name          string
+	CollectorHost string
+	CollectorPort string
+	CollectorPath string
+}
+
 // InitTracer adds a standard Jaeger Tracer to the otel global API
-func InitTracer(ctx context.Context, serviceName, collectorHost, collectorPort, collectorPath string) (func(), error) {
+func InitTracer(ctx context.Context) (func(), error) {
 	collectorEndpoint := fmt.Sprintf("http://%s:%s%s", collectorHost, collectorPort, collectorPath)
 	flush, err := jaeger.InstallNewPipeline(
 		jaeger.WithCollectorEndpoint(collectorEndpoint),
