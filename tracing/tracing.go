@@ -2,7 +2,7 @@ package tracing
 
 import (
 	"context"
-	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/HomesNZ/env"
@@ -14,30 +14,27 @@ import (
 
 // TracerConfig manages initialization of the tracing collector
 type TracerConfig struct {
-	Name          string
-	CollectorHost string
-	CollectorPort string
-	CollectorPath string
-}
-
-func (cfg TracerConfig) collectorEndpoint() string {
-	return fmt.Sprintf("http://%s:%s%s", cfg.CollectorHost, cfg.CollectorPort, cfg.CollectorPath)
+	Name              string
+	CollectorEndpoint string
 }
 
 // TracerConfigFromEnv initializes a TracerConfig from environment variables.
-func TracerConfigFromEnv() TracerConfig {
-	return TracerConfig{
-		Name:          env.MustGetString("SERVICE_NAME"),
-		CollectorHost: env.MustGetString("TRACING_COLLECTOR_HOST"),
-		CollectorPort: env.MustGetString("TRACING_COLLECTOR_PORT"),
-		CollectorPath: env.MustGetString("TRACING_COLLECTOR_PATH"),
+func TracerConfigFromEnv() (*TracerConfig, error) {
+	endpoint := jaeger.CollectorEndpointFromEnv()
+	_, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, errors.Wrap(err, "Parse failed")
 	}
+	return &TracerConfig{
+		Name:              env.MustGetString("SERVICE_NAME"),
+		CollectorEndpoint: endpoint,
+	}, nil
 }
 
 // InitTracer adds a standard Jaeger Tracer to the otel global API
 func InitTracer(ctx context.Context, cfg TracerConfig, sampleType trace.Sampler) (func(), error) {
 	flush, err := jaeger.InstallNewPipeline(
-		jaeger.WithCollectorEndpoint(cfg.collectorEndpoint()),
+		jaeger.WithCollectorEndpoint(cfg.CollectorEndpoint),
 		jaeger.WithProcess(jaeger.Process{
 			ServiceName: cfg.Name,
 		}),
