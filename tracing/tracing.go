@@ -32,7 +32,7 @@ func TracerConfigFromEnv() (*TracerConfig, error) {
 }
 
 // InitTracer adds a standard Jaeger Tracer to the otel global API
-func InitTracer(ctx context.Context, cfg TracerConfig, sampleType trace.Sampler) (func(), error) {
+func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler) (func(), error) {
 	flush, err := jaeger.InstallNewPipeline(
 		jaeger.WithCollectorEndpoint(cfg.CollectorEndpoint),
 		jaeger.WithProcess(jaeger.Process{
