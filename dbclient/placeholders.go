@@ -17,9 +17,16 @@ type Placeholder struct {
 }
 
 // Placeholders converts a given slice of interfaces into a set of postgresql insertion instructions
-func Placeholders(rawArgs []interface{}) []Placeholder {
+func Placeholders(rawArgs []interface{}, toExclude ...string) []Placeholder {
 	if len(rawArgs) == 0 {
 		return nil
+	}
+
+	keys := make(map[string]bool)
+	if len(toExclude) != 0 {
+		for _, key := range toExclude {
+			keys[strings.ToLower(key)] = true
+		}
 	}
 
 	var placeholders []Placeholder
@@ -31,7 +38,7 @@ func Placeholders(rawArgs []interface{}) []Placeholder {
 			to = len(rawArgs) - 1
 		}
 
-		structArgs := extractArgs(rawArgs[i:to])
+		structArgs := extractArgs(rawArgs[i:to], keys)
 		placeholders = append(placeholders, Placeholder{
 			Placeholders: generatePlaceholders(structArgs),
 			Args:         flattenArgs(structArgs),
@@ -52,14 +59,19 @@ func flattenArgs(args [][]interface{}) []interface{} {
 }
 
 // extractArgs converts a slice of structs to a slice of slices containing the public fields of the given structs
-func extractArgs(args []interface{}) [][]interface{} {
+func extractArgs(args []interface{}, toExclude map[string]bool) [][]interface{} {
 	var sqlArgs [][]interface{}
 
 	for _, arg := range args {
 		var fields []interface{}
 		v := reflect.ValueOf(arg)
+		f := reflect.TypeOf(arg)
 		for i := 0; i < v.NumField(); i++ {
 			a := v.Field(i)
+			name := f.Field(i).Name
+			if _, ok := toExclude[strings.ToLower(name)]; ok {
+				continue
+			}
 			if !a.CanInterface() {
 				continue
 			}
