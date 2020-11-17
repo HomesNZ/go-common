@@ -17,6 +17,7 @@ type Placeholder struct {
 }
 
 // Placeholders converts a given slice of interfaces into a set of postgresql insertion instructions
+// toExlude - ignores provided fields during generation the set of postgresql insertion instructions
 func Placeholders(rawArgs []interface{}, toExclude ...string) []Placeholder {
 	if len(rawArgs) == 0 {
 		return nil
