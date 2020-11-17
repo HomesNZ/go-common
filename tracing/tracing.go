@@ -2,13 +2,17 @@ package tracing
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/HomesNZ/env"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
+	"go.opentelemetry.io/otel/propagators"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -32,6 +36,7 @@ func TracerConfigFromEnv() (*TracerConfig, error) {
 }
 
 // InitTracer adds a standard Jaeger Tracer to the otel global API
+// this will also overwrite http.Default client with a tracing client, this is required to ensure that the trace context is passed onto dependencies
 func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler) (func(), error) {
 	flush, err := jaeger.InstallNewPipeline(
 		jaeger.WithCollectorEndpoint(cfg.CollectorEndpoint),
@@ -43,6 +48,9 @@ func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler
 	if err != nil {
 		return nil, errors.Wrap(err, "InstallNewPipeline")
 	}
+
+	global.SetTextMapPropagator(otel.NewCompositeTextMapPropagator(propagators.TraceContext{}, propagators.Baggage{}))
+	http.DefaultClient = &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 
 	tr := global.Tracer("init")
 	_, span := tr.Start(ctx, "init")
