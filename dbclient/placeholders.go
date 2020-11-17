@@ -61,11 +61,10 @@ func flattenArgs(args [][]interface{}) []interface{} {
 // extractArgs converts a slice of structs to a slice of slices containing the public fields of the given structs
 func extractArgs(args []interface{}, toExclude map[string]bool) [][]interface{} {
 	var sqlArgs [][]interface{}
-
+	f := reflect.TypeOf(args[0])
 	for _, arg := range args {
 		var fields []interface{}
 		v := reflect.ValueOf(arg)
-		f := reflect.TypeOf(arg)
 		for i := 0; i < v.NumField(); i++ {
 			a := v.Field(i)
 			name := f.Field(i).Name
