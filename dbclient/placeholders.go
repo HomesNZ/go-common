@@ -67,13 +67,14 @@ func extractArgs(args []interface{}, toExclude map[string]bool) [][]interface{} 
 		v := reflect.ValueOf(arg)
 		for i := 0; i < v.NumField(); i++ {
 			a := v.Field(i)
+			if !a.CanInterface() {
+				continue
+			}
 			name := f.Field(i).Name
 			if _, ok := toExclude[strings.ToLower(name)]; ok {
 				continue
 			}
-			if !a.CanInterface() {
-				continue
-			}
+
 			fields = append(fields, a.Interface())
 		}
 
