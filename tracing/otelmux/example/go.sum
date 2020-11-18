@@ -1,8 +1,11 @@
 github.com/DataDog/sketches-go v0.0.1 h1:RtG+76WKgZuz6FIaGsjoPePmadDBkuD/KC6+ZWu78b8=
 github.com/DataDog/sketches-go v0.0.1/go.mod h1:Q5DbzQ+3AkgGwymQO7aZFNP7ns2lZKGtvRBzRXfdi60=
 github.com/HomesNZ/go-common v0.0.0-20201118213244-8014e3b94541 h1:aNeik88wbYPgXdffcFhs65SGtgF+XPQxIYzLyIX80kw=
+github.com/HomesNZ/go-common v0.0.0-20201118220931-35b97002d7e5 h1:Mq54xDO9Ppzov3fY7XDVZDuqTYX8Bk4wobzf3jUhy4w=
+github.com/HomesNZ/go-common v0.0.0-20201118220931-35b97002d7e5/go.mod h1:3pBRifb6CSfbRp4bNePouN0gUySI4uz8e5Rk0UnPlhs=
 github.com/benbjohnson/clock v1.0.3 h1:vkLuvpK4fmtSCuo60+yC63p7y0BmQ8gm5ZXGuBCJyXg=
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
+github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -38,6 +41,7 @@ go.opentelemetry.io/otel/sdk v0.13.0 h1:4VCfpKamZ8GtnepXxMRurSpHpMKkcxhtO33z1S4r
 go.opentelemetry.io/otel/sdk v0.13.0/go.mod h1:dKvLH8Uu8LcEPlSAUsfW7kMGaJBhk/1NYvpPZ6wIMbU=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
