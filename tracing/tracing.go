@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/HomesNZ/env"
 	"github.com/pkg/errors"
@@ -56,6 +55,5 @@ func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler
 	tr := global.Tracer("init")
 	_, span := tr.Start(ctx, "init")
 	defer span.End()
-	time.Sleep(1 * time.Second)
 	return flush, nil
 }
