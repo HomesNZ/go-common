@@ -35,11 +35,12 @@ func Placeholders(rawArgs []interface{}, toExclude ...string) []Placeholder {
 	batchSize := SQL_MAX_PLACEHOLDERS / fields
 	for i := 0; i < len(rawArgs); i += batchSize {
 		to := i + batchSize
+		var structArgs [][]interface{}
 		if len(rawArgs) < to {
-			to = len(rawArgs) - 1
+			structArgs = extractArgs(rawArgs[i:], keys)
+		} else {
+			structArgs = extractArgs(rawArgs[i:to], keys)
 		}
-
-		structArgs := extractArgs(rawArgs[i:to], keys)
 		placeholders = append(placeholders, Placeholder{
 			Placeholders: generatePlaceholders(structArgs),
 			Args:         flattenArgs(structArgs),
@@ -62,6 +63,10 @@ func flattenArgs(args [][]interface{}) []interface{} {
 // extractArgs converts a slice of structs to a slice of slices containing the public fields of the given structs
 func extractArgs(args []interface{}, toExclude map[string]bool) [][]interface{} {
 	var sqlArgs [][]interface{}
+	if len(args) == 0 {
+		return sqlArgs
+	}
+
 	f := reflect.TypeOf(args[0])
 	for _, arg := range args {
 		var fields []interface{}

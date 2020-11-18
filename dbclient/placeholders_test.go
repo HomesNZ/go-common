@@ -73,6 +73,13 @@ func Test_extractArgs(t *testing.T) {
 		want [][]interface{}
 	}{
 		{
+			name: "does not panic",
+			args: args{
+				args: nil,
+			},
+			want: [][]interface{}(nil),
+		},
+		{
 			name: "generates valid args for 0 length slice",
 			args: args{
 				args: []interface{}{},
