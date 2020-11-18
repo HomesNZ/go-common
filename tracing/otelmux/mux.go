@@ -23,8 +23,6 @@ import (
 	"github.com/felixge/httpsnoop"
 	"github.com/gorilla/mux"
 
-	"github.com/HomesNZ/go-common/env"
-
 	otelcontrib "go.opentelemetry.io/contrib"
 	"go.opentelemetry.io/otel"
 
@@ -40,7 +38,7 @@ const (
 // Middleware sets up a handler to start tracing the incoming
 // requests.  The service parameter should describe the name of the
 // (virtual) server handling the request.
-func Middleware(service string, opts ...Option) mux.MiddlewareFunc {
+func Middleware(service string, ignoredRoutes []string, opts ...Option) mux.MiddlewareFunc {
 	cfg := config{}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -58,20 +56,20 @@ func Middleware(service string, opts ...Option) mux.MiddlewareFunc {
 
 	return func(handler http.Handler) http.Handler {
 		return traceware{
-			service:     service,
-			tracer:      tracer,
-			propagators: cfg.Propagators,
-			handler:     handler,
-			ignoredRoutes: strings.Split(env.GetString("TRACING_IGNORED_ROUTES", ""), " "),
+			service:       service,
+			tracer:        tracer,
+			propagators:   cfg.Propagators,
+			handler:       handler,
+			ignoredRoutes: ignoredRoutes,
 		}
 	}
 }
 
 type traceware struct {
-	service     string
-	tracer      oteltrace.Tracer
-	propagators otel.TextMapPropagator
-	handler     http.Handler
+	service       string
+	tracer        oteltrace.Tracer
+	propagators   otel.TextMapPropagator
+	handler       http.Handler
 	ignoredRoutes []string
 }
 
