@@ -9,8 +9,8 @@ import (
 	redsync "gopkg.in/redsync.v1"
 
 	"github.com/HomesNZ/go-common/redis"
-	"github.com/sirupsen/logrus"
 	"github.com/goamz/goamz/sqs"
+	"github.com/sirupsen/logrus"
 
 	redigo "github.com/gomodule/redigo/redis"
 )
@@ -193,8 +193,8 @@ func (c Consumer) receive() {
 func (c Consumer) handleResponses() {
 	for response := range c.responseChan {
 		wg := sync.WaitGroup{}
-		wg.Add(len(response.Messages))
 		for _, message := range response.Messages {
+			wg.Add(1)
 			go func(message sqs.Message) {
 				defer wg.Done()
 				c.handleMessage(message)
