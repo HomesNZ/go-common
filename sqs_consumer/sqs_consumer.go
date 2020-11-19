@@ -199,10 +199,11 @@ func (c Consumer) handleResponses() {
 				defer wg.Done()
 				c.handleMessage(message)
 			}(message)
+			if c.waitForCompletion {
+				wg.Wait()
+			}
 		}
-		if c.waitForCompletion {
-			wg.Wait()
-		}
+		wg.Wait()
 	}
 }
 
