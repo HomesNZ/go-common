@@ -69,8 +69,16 @@ func Test_extractArgs(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
+		m    map[string]bool
 		want [][]interface{}
 	}{
+		{
+			name: "does not panic",
+			args: args{
+				args: nil,
+			},
+			want: [][]interface{}(nil),
+		},
 		{
 			name: "generates valid args for 0 length slice",
 			args: args{
@@ -149,10 +157,28 @@ func Test_extractArgs(t *testing.T) {
 				{"c", "C"},
 			},
 		},
+		{
+			name: "excludes one field and generates valid placeholders for 3 slices of 1 length",
+			args: args{
+				args: []interface{}{
+					struct{ Foo, Bar string }{"a", "A"},
+					struct{ Foo, Bar string }{"b", "B"},
+					struct{ Foo, Bar string }{"c", "C"},
+				},
+			},
+			m: map[string]bool{
+				"foo": true,
+			},
+			want: [][]interface{}{
+				{"A"},
+				{"B"},
+				{"C"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := extractArgs(tt.args.args); !reflect.DeepEqual(got, tt.want) {
+			if got := extractArgs(tt.args.args, tt.m); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractArgs() = %#v, want %#v", got, tt.want)
 			}
 		})
