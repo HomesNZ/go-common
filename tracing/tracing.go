@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/HomesNZ/env"
+	"github.com/HomesNZ/go-common/env"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -51,11 +51,11 @@ func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler
 	global.SetTextMapPropagator(otel.NewCompositeTextMapPropagator(propagators.TraceContext{}, propagators.Baggage{}))
 	http.DefaultClient = &http.Client{
 		Transport: otelhttp.NewTransport(
-		http.DefaultTransport,
-		otelhttp.WithFilter(func(r *http.Request) bool {
-			// ignore messages sent to the jaeger-agent
-			return r.URL.Port() != "14268"
-		}),
+			http.DefaultTransport,
+			otelhttp.WithFilter(func(r *http.Request) bool {
+				// ignore messages sent to the jaeger-agent
+				return r.URL.Port() != "14268"
+			}),
 		),
 	}
 	http.DefaultTransport = http.DefaultClient.Transport
