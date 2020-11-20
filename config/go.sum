@@ -1,0 +1,10 @@
+github.com/HomesNZ/go-common v0.0.0-20201120023436-5acd0c46a3d0 h1:MzYHVLtu8bNUaOSHF0dZtGyvP560zt8RvmgOJCQs06o=
+github.com/HomesNZ/go-common v0.0.0-20201120023436-5acd0c46a3d0/go.mod h1:3pBRifb6CSfbRp4bNePouN0gUySI4uz8e5Rk0UnPlhs=
+github.com/HomesNZ/go-common/env v0.0.0-20201119222521-e253b997eca9 h1:JhqVnu7/8Bd8PtqxHW6JRI6rJqCuL7A0VwKofnbcSUE=
+github.com/HomesNZ/go-common/env v0.0.0-20201119222521-e253b997eca9/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
+github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+golang.org/x/sys v0.0.0-20191026070338-33540a1f6037/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
