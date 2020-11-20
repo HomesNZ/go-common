@@ -1,12 +1,6 @@
-module go.opentelemetry.io/opentelemetry-go-contrib/instrumentation/github.com/gin-gonic/gin/otelgin/example
+module github.com/HomesNZ/go-common/tracing/otelgin/example
 
-go 1.14
-
-replace (
-	go.opentelemetry.io/contrib => ../../../../../../
-	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin => ../
-	go.opentelemetry.io/contrib/propagators => ../../../../../../propagators
-)
+go 1.15
 
 require (
 	github.com/gin-gonic/gin v1.6.3
