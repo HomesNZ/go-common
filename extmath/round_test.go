@@ -1,7 +1,6 @@
-package extmath_test
+package extmath
 
 import (
-	. "github.com/HomesNZ/go-common/extmath"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
