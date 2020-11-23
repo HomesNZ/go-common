@@ -1,4 +1,4 @@
-package nzAddress_test
+package nzAddress
 
 import (
 	"github.com/HomesNZ/go-common/config"

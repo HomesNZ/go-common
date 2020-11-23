@@ -1,7 +1,6 @@
-package nzAddress_test
+package nzAddress
 
 import (
-	. "github.com/HomesNZ/go-common/nz_address"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
