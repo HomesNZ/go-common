@@ -1,7 +1,7 @@
 package dbclient
 
 import (
-	"github.com/HomesNZ/env"
+	"github.com/HomesNZ/go-common/env"
 	"github.com/jackc/pgx"
 )
 
