@@ -1,4 +1,4 @@
-package extmath_test
+package extmath
 
 import (
 	"github.com/HomesNZ/go-common/config"
