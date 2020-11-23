@@ -9,9 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	"go.opentelemetry.io/otel/propagators"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -48,7 +47,7 @@ func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler
 		return nil, errors.Wrap(err, "InstallNewPipeline")
 	}
 
-	global.SetTextMapPropagator(otel.NewCompositeTextMapPropagator(propagators.TraceContext{}, propagators.Baggage{}))
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	http.DefaultClient = &http.Client{
 		Transport: otelhttp.NewTransport(
 			http.DefaultTransport,
@@ -60,7 +59,7 @@ func InitTracer(ctx context.Context, cfg *TracerConfig, sampleType trace.Sampler
 	}
 	http.DefaultTransport = http.DefaultClient.Transport
 
-	tr := global.Tracer("init")
+	tr := otel.Tracer("init")
 	_, span := tr.Start(ctx, "init")
 	defer span.End()
 	return flush, nil
