@@ -1,7 +1,6 @@
-package redis_test
+package redis
 
 import (
-	. "github.com/HomesNZ/go-common/redis"
 	"github.com/rafaeljusto/redigomock"
 
 	"time"
