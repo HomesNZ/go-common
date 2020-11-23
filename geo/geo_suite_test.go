@@ -1,4 +1,4 @@
-package geo_test
+package geo
 
 import (
 	. "github.com/onsi/ginkgo"
