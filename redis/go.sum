@@ -1,9 +1,9 @@
-github.com/HomesNZ/go-common/config v0.0.0-20201123031440-2c8e3a832983 h1:rOzdJNEnrI3TesKiXBlxlOTZS068sVsWO8Iz2hYksBI=
-github.com/HomesNZ/go-common/config v0.0.0-20201123031440-2c8e3a832983/go.mod h1:k89mEJKVihiGdOB4OAWVzK0BSfWGehT+SsF5139PAJY=
+github.com/HomesNZ/go-common/config v0.0.0-20201123033107-069310ef2e73 h1:8SgwbS996H8nqj4cBimCT53uE14ZNHT4T2U1D+p0DvA=
+github.com/HomesNZ/go-common/config v0.0.0-20201123033107-069310ef2e73/go.mod h1:k89mEJKVihiGdOB4OAWVzK0BSfWGehT+SsF5139PAJY=
 github.com/HomesNZ/go-common/env v0.0.0-20201119222521-e253b997eca9/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
 github.com/HomesNZ/go-common/env v0.0.0-20201123012314-57acf339cca6/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
-github.com/HomesNZ/go-common/env v0.0.0-20201123024206-a05abd62ee4e h1:x6m44m2gz5o0v9dTzqqDntQPyLRCrC0Hd6+vyKf8U7I=
-github.com/HomesNZ/go-common/env v0.0.0-20201123024206-a05abd62ee4e/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
+github.com/HomesNZ/go-common/env v0.0.0-20201123033107-069310ef2e73 h1:Z3tv/gWR/mukwq1TIT124nGyHlD0pnRcvelmCrTIjtA=
+github.com/HomesNZ/go-common/env v0.0.0-20201123033107-069310ef2e73/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
 github.com/HomesNZ/go-common/logger v0.0.0-20201123022108-988ece8ca366 h1:oPAZDwSC/5HlT37jzLO37onaX6QeNye5b2wjTJf2EPk=
 github.com/HomesNZ/go-common/logger v0.0.0-20201123022108-988ece8ca366/go.mod h1:ASTNFR3K3gRcNyUlGq5PqnrOPR2PhE2BrSu+Tvm/w4k=
 github.com/bitly/go-simplejson v0.5.0 h1:6IH+V8/tVMab511d5bn4M7EwGXZf9Hj6i2xSwkNEM+Y=
