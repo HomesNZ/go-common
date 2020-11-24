@@ -2,7 +2,7 @@ package dbclient
 
 import (
 	"github.com/HomesNZ/go-common/env"
-	"gopkg.in/jackc/pgx.v3"
+	"github.com/jackc/pgx"
 )
 
 // connectionConfig returns the database connection config
