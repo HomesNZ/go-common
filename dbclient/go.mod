@@ -13,5 +13,5 @@ require (
 	github.com/shopspring/decimal v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9 // indirect
 	golang.org/x/text v0.3.4 // indirect
-	gopkg.in/jackc/pgx.v3 v3.6.0
+	gopkg.in/jackc/pgx.v3 v3.6.2
 )
