@@ -1,5 +1,5 @@
-github.com/HomesNZ/go-common/env v0.0.0-20201124005203-c2c769394b22 h1:Ky/5DBfuiIZ5IoT8nXLU2OG429aKFj41fEB1S3/aalA=
-github.com/HomesNZ/go-common/env v0.0.0-20201124005203-c2c769394b22/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
+github.com/HomesNZ/go-common/env v0.0.0-20201124005429-a7ff8dcf8c7c h1:jdAqXf9f4b+KFDJ7XHJ/6aFEHbPiF76kf+xuQo5BC1c=
+github.com/HomesNZ/go-common/env v0.0.0-20201124005429-a7ff8dcf8c7c/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -36,5 +36,5 @@ golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.4 h1:0YWbFKbhXG/wIiuHDSKpS0Iy7FSA+u45VtBMfQcFTTc=
 golang.org/x/text v0.3.4/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
-gopkg.in/jackc/pgx.v3 v3.6.2 h1:qUKbcEoMYySr4CRq1Iyh+MWzx9GWxn8g8Y+Trvm5DOg=
-gopkg.in/jackc/pgx.v3 v3.6.2/go.mod h1:p7s64HOdQ2A87H2ydp1cwjJeQXnrDOFVbIoyA6xFsFk=
+gopkg.in/jackc/pgx.v3 v3.6.0 h1:uZr4bG8YpWDTMR2bCNI4FLOHGzNnptsuNvFx+jGtcHM=
+gopkg.in/jackc/pgx.v3 v3.6.0/go.mod h1:p7s64HOdQ2A87H2ydp1cwjJeQXnrDOFVbIoyA6xFsFk=
