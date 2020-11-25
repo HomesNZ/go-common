@@ -3,13 +3,14 @@ package migrate
 import (
 	"context"
 	"errors"
-	"github.com/mna/redisc"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/mna/redisc"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx"
@@ -19,7 +20,7 @@ import (
 type migrationType string
 
 const (
-	migrationTableName = "schema_version"
+	migrationTableName = "gomigrate"
 	upMigration        = migrationType("up")
 	downMigration      = migrationType("down")
 	migrationLock      = ":migration-lock"
@@ -119,7 +120,7 @@ func (m *Migrator) CreateMigrationsTable() error {
 
 // Returns a new migrator.
 func NewMigrator(db *pgx.ConnPool, adapter Postgres, migrationsPath string, redis *redisc.Cluster) (*Migrator, error) {
-	return NewMigratorWithLogger(db, adapter, migrationsPath, redis, log.New(os.Stderr, "[schema_version] ", log.LstdFlags))
+	return NewMigratorWithLogger(db, adapter, migrationsPath, redis, log.New(os.Stderr, "[gomigrate] ", log.LstdFlags))
 }
 
 // Returns a new migrator with the specified logger.

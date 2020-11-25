@@ -3,23 +3,24 @@ package migrate
 import (
 	//"context"
 	"fmt"
-	"github.com/HomesNZ/go-common/dbclient/v3"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"testing"
+
+	"github.com/HomesNZ/go-common/dbclient/v3"
+	log "github.com/sirupsen/logrus"
 )
 
 func TestCreatingMigratorWhenTableExists(t *testing.T) {
 	os.Setenv("DB_NAME", "postgres")
 	adapter := Postgres{SchemaName: "test"}
 	path := fmt.Sprintf("test_migrations/")
-	db, _ := dbclient.Conn("test",1)
+	db, _ := dbclient.Conn("test", 1)
 	m, err := NewMigrator(db, adapter, path, nil)
 	if err != nil {
 		t.Error(err)
 	}
 	err = m.Migrate(log.WithField("startup", "migrate"))
-	row := db.QueryRow("select migration_id from test.schema_version")
+	row := db.QueryRow("select migration_id from test.gomigrate")
 	var id uint64
 	err = row.Scan(&id)
 	if err != nil {
@@ -93,7 +94,7 @@ func TestCreatingMigratorWhenTableExists(t *testing.T) {
 
 //func cleanup() {
 //	ctx :=context.Background()
-//	_, err := db.Exec(ctx, "drop table schema_version")
+//	_, err := db.Exec(ctx, "drop table gomigrate")
 //	if err != nil {
 //		panic(err)
 //	}
