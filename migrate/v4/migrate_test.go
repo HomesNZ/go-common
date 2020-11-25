@@ -3,9 +3,10 @@ package migrate
 import (
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/HomesNZ/go-common/dbclient/v4"
 	"testing"
+
+	"github.com/HomesNZ/go-common/dbclient/v4"
+	log "github.com/sirupsen/logrus"
 )
 
 func TestCreatingMigratorWhenTableExists(t *testing.T) {
@@ -13,20 +14,20 @@ func TestCreatingMigratorWhenTableExists(t *testing.T) {
 
 	cfg := dbclient.Config{
 		MaxConns: 1,
-		Host: "localhost",
-		Name: "postgres",
-		User: "postgres",
-		Port: 5432,
+		Host:     "localhost",
+		Name:     "postgres",
+		User:     "postgres",
+		Port:     5432,
 	}
 	adapter := Postgres{SchemaName: "test"}
-		path := fmt.Sprintf("test_migrations/")
+	path := fmt.Sprintf("test_migrations/")
 	db, _ := dbclient.Conn(ctx, &cfg)
 	m, err := NewMigrator(ctx, db, adapter, path, nil)
 	if err != nil {
 		t.Error(err)
 	}
 	err = m.Migrate(ctx, log.WithField("startup", "migrate"))
-	row := db.QueryRow(ctx, "select migration_id from test.schema_version")
+	row := db.QueryRow(ctx, "select migration_id from test.gomigrate")
 	var id uint64
 	err = row.Scan(&id)
 	if err != nil {
@@ -100,7 +101,7 @@ func TestCreatingMigratorWhenTableExists(t *testing.T) {
 
 //func cleanup() {
 //	ctx :=context.Background()
-//	_, err := db.Exec(ctx, "drop table schema_version")
+//	_, err := db.Exec(ctx, "drop table gomigrate")
 //	if err != nil {
 //		panic(err)
 //	}
