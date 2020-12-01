@@ -19,8 +19,8 @@ import (
 	//redigolib "github.com/gomodule/redigo/redis"
 
 	"github.com/HomesNZ/go-common/redis"
-	redigo "github.com/garyburd/redigo/redis"
 	redsync "github.com/go-redsync/redsync" //TODO: replace it to new version
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 var contextLogger = logrus.WithField("package", "sqs_consumer")
