@@ -10,7 +10,7 @@ import (
 	"github.com/cenkalti/backoff"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/garyburd/redigo/redis"
 	"github.com/mna/redisc"
 )
 

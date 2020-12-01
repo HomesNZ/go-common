@@ -6,7 +6,8 @@ require (
 	github.com/HomesNZ/go-common/config v0.0.0-20201123033107-069310ef2e73
 	github.com/HomesNZ/go-common/env v0.0.0-20201123033107-069310ef2e73
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/gomodule/redigo v1.8.2
+	github.com/garyburd/redigo v1.6.2
+	github.com/gomodule/redigo v1.8.2 // indirect
 	github.com/mna/redisc v1.1.7
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3

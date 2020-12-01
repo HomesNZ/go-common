@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/garyburd/redigo/redis"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

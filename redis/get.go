@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"github.com/gomodule/redigo/redis"
+	"github.com/garyburd/redigo/redis"
 )
 
 // Get returns a key value pair from redis.
