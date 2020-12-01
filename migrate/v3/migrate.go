@@ -285,7 +285,7 @@ func (m *Migrator) ApplyMigration(migration *Migration, mType migrationType) err
 
 	// Perform the migration.
 	for _, cmd := range commands {
-		result, err := transaction.Exec(cmd)
+		_, err := transaction.Exec(cmd)
 		if err != nil {
 			m.logger.Printf("Error executing migration: %v", err)
 			if rollbackErr := transaction.Rollback(); rollbackErr != nil {
