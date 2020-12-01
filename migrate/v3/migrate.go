@@ -294,16 +294,16 @@ func (m *Migrator) ApplyMigration(migration *Migration, mType migrationType) err
 			}
 			return err
 		}
-		if &result != nil {
-			if rowsAffected := result.RowsAffected(); rowsAffected > 1 {
-				m.logger.Printf("Error getting rows affected: %v", rowsAffected)
-				if rollbackErr := transaction.Rollback(); rollbackErr != nil {
-					m.logger.Printf("Error rolling back transaction: %v", rollbackErr)
-					return rollbackErr
-				}
-				return err
-			}
-		}
+		// if &result != nil {
+		// 	if rowsAffected := result.RowsAffected(); rowsAffected > 1 {
+		// 		m.logger.Printf("Error getting rows affected: %v", rowsAffected)
+		// 		if rollbackErr := transaction.Rollback(); rollbackErr != nil {
+		// 			m.logger.Printf("Error rolling back transaction: %v", rollbackErr)
+		// 			return rollbackErr
+		// 		}
+		// 		return err
+		// 	}
+		// }
 	}
 
 	// Log the event.
