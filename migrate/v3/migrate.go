@@ -10,8 +10,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/mna/redisc"
-
 	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx"
 	"github.com/sirupsen/logrus"
@@ -41,7 +39,7 @@ type Migrator struct {
 	dbAdapter      Postgres
 	migrations     map[uint64]*Migration
 	logger         Logger
-	Redis          *redisc.Cluster
+	Redis          *redis.Pool
 }
 
 type Logger interface {
@@ -119,12 +117,12 @@ func (m *Migrator) CreateMigrationsTable() error {
 }
 
 // Returns a new migrator.
-func NewMigrator(db *pgx.ConnPool, adapter Postgres, migrationsPath string, redis *redisc.Cluster) (*Migrator, error) {
+func NewMigrator(db *pgx.ConnPool, adapter Postgres, migrationsPath string, redis *redis.Pool) (*Migrator, error) {
 	return NewMigratorWithLogger(db, adapter, migrationsPath, redis, log.New(os.Stderr, "[gomigrate] ", log.LstdFlags))
 }
 
 // Returns a new migrator with the specified logger.
-func NewMigratorWithLogger(db *pgx.ConnPool, adapter Postgres, migrationsPath string, redis *redisc.Cluster, logger Logger) (*Migrator, error) {
+func NewMigratorWithLogger(db *pgx.ConnPool, adapter Postgres, migrationsPath string, redis *redis.Pool, logger Logger) (*Migrator, error) {
 	// Normalize the migrations path.
 	path := []byte(migrationsPath)
 	pathLength := len(path)

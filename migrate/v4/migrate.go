@@ -10,8 +10,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/mna/redisc"
-
 	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -42,7 +40,7 @@ type Migrator struct {
 	dbAdapter      Postgres
 	migrations     map[uint64]*Migration
 	logger         Logger
-	Redis          *redisc.Cluster
+	Redis          *redis.Pool
 }
 
 type Logger interface {
@@ -120,12 +118,12 @@ func (m *Migrator) CreateMigrationsTable(ctx context.Context) error {
 }
 
 // Returns a new migrator.
-func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redisc.Cluster) (*Migrator, error) {
+func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redis.Pool) (*Migrator, error) {
 	return NewMigratorWithLogger(ctx, db, adapter, migrationsPath, redis, log.New(os.Stderr, "[gomigrate] ", log.LstdFlags))
 }
 
 // Returns a new migrator with the specified logger.
-func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redisc.Cluster, logger Logger) (*Migrator, error) {
+func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redis.Pool, logger Logger) (*Migrator, error) {
 	// Normalize the migrations path.
 	path := []byte(migrationsPath)
 	pathLength := len(path)
