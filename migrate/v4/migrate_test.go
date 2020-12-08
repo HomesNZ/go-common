@@ -3,126 +3,210 @@ package migrate
 import (
 	"context"
 	"fmt"
-	"testing"
+	"github.com/gomodule/redigo/redis"
 
-	"github.com/HomesNZ/go-common/dbclient/v4"
-	log "github.com/sirupsen/logrus"
+	//"github.com/HomesNZ/go-common/redis"
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rafaeljusto/redigomock"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	//"github.com/mna/redisc"
+	"testing"
 )
 
-func TestCreatingMigratorWhenTableExists(t *testing.T) {
-	ctx := context.Background()
+var (
+	logger  logrus.FieldLogger
+	adapter Postgres
+	db      *pgxpool.Pool
+	ctx     context.Context
+)
 
-	cfg := dbclient.Config{
-		MaxConns: 1,
-		Host:     "localhost",
-		Name:     "postgres",
-		User:     "postgres",
-		Port:     5432,
+func TestNewMigrator(t *testing.T) {
+	m := getMigrator()
+
+	if len(m.migrations) != 3 {
+		t.Errorf("Invalid number of migrations detected")
 	}
-	adapter := Postgres{SchemaName: "test"}
-	path := fmt.Sprintf("test_migrations/")
-	db, _ := dbclient.Conn(ctx, &cfg)
-	m, err := NewMigrator(ctx, db, adapter, path, nil)
+	migration := m.migrations[1]
+
+	if migration.Name != "test" {
+		t.Errorf("Invalid migration name detected: %s", migration.Name)
+	}
+	if migration.Id != 1 {
+		t.Errorf("Invalid migration num detected: %d", migration.Id)
+	}
+	if migration.Status != Inactive {
+		t.Errorf("Invalid migration num detected: %d", migration.Status)
+	}
+
+	cleanup()
+}
+
+func TestCreatingMigratorWhenTableExists(t *testing.T) {
+	// Create the table and populate it with a row.
+	_, err := db.Exec(ctx, adapter.CreateMigrationTableSql())
 	if err != nil {
 		t.Error(err)
 	}
-	err = m.Migrate(ctx, log.WithField("startup", "migrate"))
+	_, err = db.Exec(ctx, adapter.MigrationLogInsertSql(), 123)
+	if err != nil {
+		t.Error(err)
+	}
+
+	getMigrator()
+
+	// Check that our row is still present.
 	row := db.QueryRow(ctx, "select migration_id from test.gomigrate")
 	var id uint64
 	err = row.Scan(&id)
 	if err != nil {
 		t.Error(err)
 	}
-	if id != 1 {
+	if id != 123 {
 		t.Error("Invalid id found in database")
 	}
-	//cleanup()
+	cleanup()
 }
 
-//func TestMigrationAndRollback(t *testing.T) {
-//	m := GetMigrator("test1")
-//
-//	if err := m.Migrate(); err != nil {
-//		t.Error(err)
-//	}
-//
-//	// Ensure that the migration ran.
-//	row := db.QueryRow(
-//		adapter.SelectMigrationTableSql(),
-//		"test",
-//	)
-//	var tableName string
-//	if err := row.Scan(&tableName); err != nil {
-//		t.Error(err)
-//	}
-//	if tableName != "test" {
-//		t.Errorf("Migration table not created")
-//	}
-//	// Ensure that the migrate status is correct.
-//	row = db.QueryRow(
-//		adapter.GetMigrationSql(),
-//		1,
-//	)
-//	var status int
-//	if err := row.Scan(&status); err != nil {
-//		t.Error(err)
-//	}
-//	if status != Active || m.migrations[1].Status != Active {
-//		t.Error("Invalid status for migration")
-//	}
-//	if err := m.RollbackN(len(m.migrations)); err != nil {
-//		t.Error(err)
-//	}
-//
-//	// Ensure that the down migration ran.
-//	row = db.QueryRow(
-//		adapter.SelectMigrationTableSql(),
-//		"test",
-//	)
-//	err := row.Scan(&tableName)
-//	if err != nil && err != sql.ErrNoRows {
-//		t.Errorf("Migration table should be deleted: %v", err)
-//	}
-//
-//	// Ensure that the migration log is missing.
-//	row = db.QueryRow(
-//		adapter.GetMigrationSql(),
-//		1,
-//	)
-//	if err := row.Scan(&status); err != nil && err != sql.ErrNoRows {
-//		t.Error(err)
-//	}
-//	if m.migrations[1].Status != Inactive {
-//		t.Errorf("Invalid status for migration, expected: %d, got: %v", Inactive, m.migrations[1].Status)
-//	}
-//
-//	cleanup()
-//}
+func TestMigrationAndRollback(t *testing.T) {
+	cleanup()
+	m := getMigrator()
+	if err := m.Migrate(ctx, logger); err != nil {
+		t.Error(err)
+	}
 
-//func cleanup() {
-//	ctx :=context.Background()
-//	_, err := db.Exec(ctx, "drop table gomigrate")
-//	if err != nil {
-//		panic(err)
-//	}
-//}
+	// Ensure that the migration ran.
+	row := db.QueryRow(
+		ctx,
+		adapter.SelectMigrationTableSql(),
+		"gomigrate",
+	)
+	var tableName string
+	if err := row.Scan(&tableName); err != nil {
+		t.Error(err)
+	}
+	if tableName != "gomigrate" {
+		t.Errorf("Migration table not created")
+	}
+	// Ensure that the migrate status is correct.
+	row = db.QueryRow(
+		ctx,
+		adapter.GetMigrationSql(),
+		1,
+	)
+	var status int
+	if err := row.Scan(&status); err != nil {
+		t.Error(err)
+	}
+	if status != Active || m.migrations[1].Status != Active {
+		t.Error("Invalid status for migration")
+	}
+	if err := m.RollbackN(ctx, len(m.migrations)+1, logger); err != nil {
+		t.Error(err)
+	}
 
-//func init() {
-//	var err error
-//	dbType = "pg"
-//	ctx := context.Background()
-//	log.Print("Using postgres")
-//	//adapter = Postgres{}
-//	//db, err = sql.Open("postgres", "host=localhost dbname=gomigrate sslmode=disable")
-//
-//	db, err = dbclient.Conn(ctx, &dbclient.Config{
-//		MaxConns: 1,
-//		Host: "localhost",
-//		Name: "postgres",
-//		User: "postgres",
-//	})
-//
-//	if err != nil {
-//		panic(err)
-//	}
-//}
+	// Ensure that the down migration ran.
+	row = db.QueryRow(
+		ctx,
+		adapter.SelectMigrationTableSql(),
+		"gomigrate",
+	)
+	err := row.Scan(&tableName)
+	if err != nil && err != pgx.ErrNoRows {
+		t.Errorf("Migration table should be deleted: %v", err)
+	}
+
+	// Ensure that the migration log is missing.
+	row = db.QueryRow(
+		ctx,
+		adapter.GetMigrationSql(),
+		1,
+	)
+	if err := row.Scan(&status); err != nil && err != pgx.ErrNoRows {
+		t.Error(err)
+	}
+	if m.migrations[1].Status != Inactive {
+		t.Errorf("Invalid status for migration, expected: %d, got: %v", Inactive, m.migrations[1].Status)
+	}
+
+	cleanup()
+}
+
+//should Lock redis
+func TestLockSuccess(t *testing.T) {
+	m := getMigratorWithRedis("EXISTS", "test", int64(0))
+	res, _ := m.Lock("test", logger)
+	assert.Equal(t, res, true)
+}
+
+//should failure Locking, because key doen't exist
+func TestLockFailure(t *testing.T) {
+	m := getMigratorWithRedis("EXISTS", "test", int64(1))
+
+	res, _ := m.Lock("test", logger)
+
+	assert.Equal(t, res, false)
+}
+
+//should failure Locking, because key is not valid and should not panic
+func TestLockFailureWithErr(t *testing.T) {
+	m := getMigratorWithRedis("EXISTS", "test", "fail")
+
+	res, err := m.Lock("test", logger)
+	assert.Equal(t, err.Error(), "redigo: unexpected type for Int64, got type string")
+	assert.Equal(t, res, false)
+}
+
+func TestUnlock(t *testing.T) {
+	m := getMigratorWithRedis("DEL", "test", int64(1))
+	err := m.Unlock("test")
+	assert.Equal(t, err, nil)
+}
+
+func getMigrator() *Migrator {
+	path := fmt.Sprintf("%s", "test_migrations")
+	m, err := NewMigrator(ctx, db, adapter, path, nil)
+	if err != nil {
+		panic(err)
+	}
+	return m
+}
+
+func getMigratorWithRedis(com string, key string, exp interface{}) *Migrator {
+	mock := redigomock.NewConn()
+	mock.Command(com, key).Expect(exp)
+
+	p := &redis.Pool{
+		Dial: func() (redis.Conn, error) { return mock, nil },
+	}
+
+	//redisConn := redis.CacheConn().Pool.
+
+	path := fmt.Sprintf("%s", "test_migrations")
+	m, err := NewMigrator(ctx, db, adapter, path, p)
+	if err != nil {
+		panic(err)
+	}
+	return m
+}
+
+func cleanup() {
+	_, err := db.Exec(ctx, "drop table test.gomigrate")
+	_, err = db.Exec(ctx, "drop table if exists test.tt")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func init() {
+	var err error
+	logger = logrus.New()
+	adapter = Postgres{SchemaName: "test"}
+	ctx = context.Background()
+	db, err = pgxpool.Connect(ctx, "host=localhost user=postgres dbname=postgres sslmode=disable")
+
+	if err != nil {
+		panic(err)
+	}
+}
