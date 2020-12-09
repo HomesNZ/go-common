@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/mna/redisc"
+	"time"
 
-	//"github.com/HomesNZ/go-common/redis"
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rafaeljusto/redigomock"
+	//"github.com/rafaeljusto/redigomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	//"github.com/mna/redisc"
 	"testing"
 )
 
@@ -135,31 +135,21 @@ func TestMigrationAndRollback(t *testing.T) {
 
 //should Lock redis
 func TestLockSuccess(t *testing.T) {
-	m := getMigratorWithRedis("EXISTS", "test", int64(0))
+	m := getMigratorWithRedis()
 	res, _ := m.Lock("test", logger)
 	assert.Equal(t, res, true)
 }
 
 //should failure Locking, because key doen't exist
 func TestLockFailure(t *testing.T) {
-	m := getMigratorWithRedis("EXISTS", "test", int64(1))
-
+	m := getMigratorWithRedis()
 	res, _ := m.Lock("test", logger)
 
 	assert.Equal(t, res, false)
 }
 
-//should failure Locking, because key is not valid and should not panic
-func TestLockFailureWithErr(t *testing.T) {
-	m := getMigratorWithRedis("EXISTS", "test", "fail")
-
-	res, err := m.Lock("test", logger)
-	assert.Equal(t, err.Error(), "redigo: unexpected type for Int64, got type string")
-	assert.Equal(t, res, false)
-}
-
 func TestUnlock(t *testing.T) {
-	m := getMigratorWithRedis("DEL", "test", int64(1))
+	m := getMigratorWithRedis()
 	err := m.Unlock("test")
 	assert.Equal(t, err, nil)
 }
@@ -173,22 +163,43 @@ func getMigrator() *Migrator {
 	return m
 }
 
-func getMigratorWithRedis(com string, key string, exp interface{}) *Migrator {
-	mock := redigomock.NewConn()
-	mock.Command(com, key).Expect(exp)
+func getMigratorWithRedis() *Migrator {
 
-	p := &redis.Pool{
-		Dial: func() (redis.Conn, error) { return mock, nil },
+	redisCluster := &redisc.Cluster{
+		StartupNodes: []string{":6379"},
+		DialOptions:  []redis.DialOption{redis.DialConnectTimeout(2 * time.Second)},
+		CreatePool:   createPool,
 	}
 
-	//redisConn := redis.CacheConn().Pool.
-
 	path := fmt.Sprintf("%s", "test_migrations")
-	m, err := NewMigrator(ctx, db, adapter, path, p)
+	m, err := NewMigrator(ctx, db, adapter, path, redisCluster)
 	if err != nil {
 		panic(err)
 	}
 	return m
+}
+
+func createPool(addr string, opts ...redis.DialOption) (*redis.Pool, error) {
+	//mock := redigomock.NewConn()
+	//mock.Command(com, key).Expect(exp)
+	//
+	//p := &redis.Pool{
+	//	Dial: func() (redis.Conn, error) { return mock, nil },
+	//}
+
+	return &redis.Pool{
+		MaxIdle:     5,
+		MaxActive:   10,
+		IdleTimeout: time.Minute,
+		//Dial: func() (redis.Conn, error) { return mock, nil },
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp", addr, opts...)
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
+	}, nil
 }
 
 func cleanup() {

@@ -1,5 +1,5 @@
-github.com/HomesNZ/go-common/dbclient/v3 v3.0.0-20201208025527-6dd874a37805 h1:Q9Pvmo9odP2Zo9HrbDOf3E+EjL1d8TyIFpZKjp3vwIA=
-github.com/HomesNZ/go-common/dbclient/v3 v3.0.0-20201208025527-6dd874a37805/go.mod h1:os3EMjrlh1UXmmc+LkX9On8OXdfnFE2O3W12Nta4Brg=
+github.com/HomesNZ/go-common/dbclient/v3 v3.0.0-20201208221307-eba80d2e9290 h1:3htwyScRqyhKcy5LkHsPl26O+ueIINbRJtkxGaRAqSY=
+github.com/HomesNZ/go-common/dbclient/v3 v3.0.0-20201208221307-eba80d2e9290/go.mod h1:os3EMjrlh1UXmmc+LkX9On8OXdfnFE2O3W12Nta4Brg=
 github.com/HomesNZ/go-common/env v0.0.0-20201124200925-c819d04fe3dd h1:VFMIQM6VvcV+Kx8KqTBoD/ngwFU+6dHgEbJjyW5JFrQ=
 github.com/HomesNZ/go-common/env v0.0.0-20201124200925-c819d04fe3dd/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
@@ -19,6 +19,8 @@ github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
 github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
 github.com/lib/pq v1.8.0 h1:9xohqzkUwzR4Ga4ivdTcawVS89YSDVxXMa3xJX3cGzg=
 github.com/lib/pq v1.8.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
+github.com/mna/redisc v1.1.7 h1:FdmtJsfTjoIjNXiQf4ozgNjuE+zxWH+fJSe+I/dD4vc=
+github.com/mna/redisc v1.1.7/go.mod h1:GXeOb7zyYKiT+K8MKdIiJvuv7MfhDoQGcuzfiJQmqQI=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
@@ -28,6 +30,7 @@ github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFR
 github.com/sirupsen/logrus v1.7.0 h1:ShrD1U9pZB12TX0cVy0DtePoCH97K8EtX+mg7ZARUtM=
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
