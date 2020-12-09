@@ -3,6 +3,8 @@ package migrate
 import (
 	"context"
 	"errors"
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/mna/redisc"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,8 +12,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/gomodule/redigo/redis"
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
 )
@@ -40,7 +40,7 @@ type Migrator struct {
 	dbAdapter      Postgres
 	migrations     map[uint64]*Migration
 	logger         Logger
-	Redis          *redis.Pool
+	Redis          *redisc.Cluster
 }
 
 type Logger interface {
@@ -54,23 +54,13 @@ func (m *Migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
 	conn := m.Redis.Get()
 	defer conn.Close()
 
-	reply, err := redis.Int64(conn.Do("EXISTS", key))
+	reply, err := conn.Do("EXISTS", key)
 	if err != nil {
 		return false, err
 	}
-	switch reply {
+	switch reply.(int64) {
 	case 0:
-		// Keep an expiry key updated while the migration is running, this will by automatically culled in the 60s following the completion of the migration
-		// this is intended to allow for migration retries and to prevent us from logging into production to resolve migration lock
-		go func() {
-			t := time.NewTicker(time.Second * 45)
-			for range t.C {
-				_, err := conn.Do("SETEX", key, int(time.Second*60), true)
-				if err != nil {
-					log.WithError(err).Fatal()
-				}
-			}
-		}()
+		_, err := conn.Do("SETEX", key, int(time.Second*60), true)
 		return true, err
 	default:
 		return false, nil
@@ -118,12 +108,12 @@ func (m *Migrator) CreateMigrationsTable(ctx context.Context) error {
 }
 
 // Returns a new migrator.
-func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redis.Pool) (*Migrator, error) {
+func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redisc.Cluster) (*Migrator, error) {
 	return NewMigratorWithLogger(ctx, db, adapter, migrationsPath, redis, log.New(os.Stderr, "[gomigrate] ", log.LstdFlags))
 }
 
 // Returns a new migrator with the specified logger.
-func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redis.Pool, logger Logger) (*Migrator, error) {
+func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redisc.Cluster, logger Logger) (*Migrator, error) {
 	// Normalize the migrations path.
 	path := []byte(migrationsPath)
 	pathLength := len(path)
