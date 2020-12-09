@@ -3,14 +3,15 @@ package migrate
 import (
 	"context"
 	"errors"
-	pgx "github.com/jackc/pgx/v4"
-	"github.com/mna/redisc"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	pgx "github.com/jackc/pgx/v4"
+	"github.com/mna/redisc"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
@@ -60,7 +61,7 @@ func (m *Migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
 	}
 	switch reply.(int64) {
 	case 0:
-		_, err := conn.Do("SETEX", key, int(time.Second*60), true)
+		_, err := conn.Do("SETEX", key, int(time.Second*7200), true)
 		return true, err
 	default:
 		return false, nil
