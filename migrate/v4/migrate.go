@@ -275,7 +275,7 @@ func (m *Migrator) ApplyMigration(ctx context.Context, migration *Migration, mTy
 
 	// Perform the migration.
 	for _, cmd := range commands {
-		result, err := transaction.Exec(ctx, cmd)
+		_, err := transaction.Exec(ctx, cmd)
 		if err != nil {
 			m.logger.Printf("Error executing migration: %v", err)
 			if rollbackErr := transaction.Rollback(ctx); rollbackErr != nil {
@@ -283,16 +283,6 @@ func (m *Migrator) ApplyMigration(ctx context.Context, migration *Migration, mTy
 				return rollbackErr
 			}
 			return err
-		}
-		if result != nil {
-			if rowsAffected := result.RowsAffected(); rowsAffected > 1 {
-				m.logger.Printf("Error getting rows affected: %v", rowsAffected)
-				if rollbackErr := transaction.Rollback(ctx); rollbackErr != nil {
-					m.logger.Printf("Error rolling back transaction: %v", rollbackErr)
-					return rollbackErr
-				}
-				return err
-			}
 		}
 	}
 
