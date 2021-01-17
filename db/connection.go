@@ -13,8 +13,8 @@ import (
 	// SQL driver
 	_ "github.com/lib/pq"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/cenkalti/backoff"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -118,7 +118,7 @@ func (db PG) connectionString(service string) string {
 	}
 
 	connString := fmt.Sprintf(
-		"postgres://%s%s@%s:%s/%s?sslmode=%s&application_name=%s",
+		"postgres://%s%s@%s:%s/%s?sslmode=%s&application_name=%s&binary_parameters=yes",
 		env.GetString("DB_USER", "postgres"),
 		password,
 		env.GetString("DB_HOST", "localhost"),
