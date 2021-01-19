@@ -11,27 +11,27 @@ import (
 const DefaultMaxConnect = 1
 
 type Config struct {
-	ServiceName          string
-	Host                 string
-	User                 string
-	Name                 string
-	Password             string
-	MaxConns             int
-	Port                 int
-	SearchPath           string
+	ServiceName string
+	Host        string
+	User        string
+	Name        string
+	Password    string
+	MaxConns    int
+	Port        int
+	SearchPath  string
 }
 
 // ConfigEnv returns config, all settings will be pulled from environment variables
 func ConfigFromEnv(serviceName string) Config {
 	return Config{
-		ServiceName:          serviceName,
-		Host:                 env.GetString("DB_HOST", "localhost"),
-		User:                 env.GetString("DB_USER", "postgres"),
-		Name:                 env.MustGetString("DB_NAME"),
-		Password:             env.GetString("DB_PASSWORD", ""),
-		Port:                 env.GetInt("DB_PORT", 5432),
-		SearchPath:           env.GetString("DB_SEARCH_PATH", ""),
-		MaxConns:             DefaultMaxConnect,
+		ServiceName: serviceName,
+		Host:        env.GetString("DB_HOST", "localhost"),
+		User:        env.GetString("DB_USER", "postgres"),
+		Name:        env.MustGetString("DB_NAME"),
+		Password:    env.GetString("DB_PASSWORD", ""),
+		Port:        env.GetInt("DB_PORT", 5432),
+		SearchPath:  env.GetString("DB_SEARCH_PATH", ""),
+		MaxConns:    DefaultMaxConnect,
 	}
 }
 
@@ -46,7 +46,6 @@ func connectionConfig(cfg *Config) (*pgxpool.Config, error) {
 		cfg.MaxConns,
 		cfg.SearchPath,
 		cfg.ServiceName,
-		cfg.
 	)
 	config, err := pgxpool.ParseConfig(connStr)
 	config.PreferSimpleProtocol = true
