@@ -48,7 +48,7 @@ func connectionConfig(cfg *Config) (*pgxpool.Config, error) {
 		cfg.ServiceName,
 	)
 	config, err := pgxpool.ParseConfig(connStr)
-	config.PreferSimpleProtocol = true
+	config.ConnConfig.PreferSimpleProtocol = true
 	return config, err
 }
 
