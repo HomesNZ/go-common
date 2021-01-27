@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	redsync "gopkg.in/redsync.v1"
+	redsync "github.com/go-redsync/redsync"
 
 	"github.com/HomesNZ/go-common/redis"
 	"github.com/goamz/goamz/sqs"
