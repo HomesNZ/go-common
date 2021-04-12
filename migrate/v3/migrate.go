@@ -22,7 +22,7 @@ const (
 	downMigration      = migrationType("down")
 	migrationLock      = ":migration-lock"
 	rollbackLock       = ":rollback-lock"
-	expiry             = 86400 //24 hrs
+	expirationTime     = 86400 //24 hrs
 )
 
 var (
@@ -61,7 +61,7 @@ func (m *Migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
 	case 0:
 		// Keep an expiry key updated while the migration is running, this will by automatically culled in the 60s following the completion of the migration
 		// this is intended to allow for migration retries and to prevent us from logging into production to resolve migration lock
-		_, err := conn.Do("SETEX", key, int(expiry), true)
+		_, err := conn.Do("SETEX", key, expirationTime, true)
 		return true, err
 	default:
 		return false, nil
