@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"time"
 
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/mna/redisc"
@@ -25,6 +24,7 @@ const (
 	downMigration      = migrationType("down")
 	migrationLock      = ":migration-lock"
 	rollbackLock       = ":rollback-lock"
+	expiry             = 86400 //24 hrs
 )
 
 var (
@@ -61,7 +61,7 @@ func (m *Migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
 	}
 	switch reply.(int64) {
 	case 0:
-		_, err := conn.Do("SETEX", key, int(time.Second*7200), true)
+		_, err := conn.Do("SETEX", key, int(expiry), true)
 		return true, err
 	default:
 		return false, nil
