@@ -37,16 +37,24 @@ func ConfigFromEnv(serviceName string) Config {
 
 // connectionConfig returns the database connection config and error
 func connectionConfig(cfg *Config) (*pgxpool.Config, error) {
-	connStr := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%d pool_max_conns=%d search_path=%s application_name=%s",
+	connStr := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%d pool_max_conns=%d",
 		cfg.Host,
 		cfg.User,
 		cfg.Name,
 		cfg.Password,
 		uint16(cfg.Port),
 		cfg.MaxConns,
-		cfg.SearchPath,
-		cfg.ServiceName,
 	)
+
+	if len(cfg.SearchPath) > 0 || len(cfg.ServiceName) > 0 {
+		if len(cfg.SearchPath) > 0 {
+			connStr = fmt.Sprintf("%s search_path=%s", connStr, cfg.SearchPath)
+		}
+		if len(cfg.ServiceName) > 0 {
+			connStr = fmt.Sprintf("%s application_name=%s", connStr, cfg.ServiceName)
+		}
+	}
+
 	config, err := pgxpool.ParseConfig(connStr)
 	config.ConnConfig.PreferSimpleProtocol = true
 	return config, err
