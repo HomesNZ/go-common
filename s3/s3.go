@@ -3,6 +3,7 @@ package s3
 import (
 	"bytes"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"time"
 
 	"github.com/HomesNZ/go-common/env"
@@ -100,8 +101,7 @@ func (s S3) UploadAsset(key string, b []byte, expiry time.Time, contentType stri
 
 	_, err = s.PutObject(params)
 	if err != nil {
-		logrus.Error(err)
-		return "", err
+		return "", errors.Wrap(err, "Failed to upload asset to aws S3 bucket")
 	}
 
 	return s.assetURL(key), nil
@@ -116,10 +116,27 @@ func (s S3) DeleteAsset(key string) (string, error) {
 	resp, err := s.DeleteObject(params)
 	if err != nil {
 		logrus.Error(err)
-		return resp.String(), err
+		return resp.String(), errors.Wrap(err, "Failed to delete asset from aws S3 bucket")
 	}
 
 	return resp.String(), nil
+}
+
+func (s S3) DownloadAsset(key string) ([]byte, error) {
+	buff := &aws.WriteAtBuffer{}
+	sess, _ := session.NewSession(&aws.Config{Region: aws.String(s.Config.Region)})
+	downloader := s3manager.NewDownloader(sess)
+	_, err := downloader.Download(buff,
+		&s3.GetObjectInput{
+			Bucket: aws.String(s.Config.BucketName),
+			Key:    aws.String(key),
+		})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to download asset from aws S3 bucket")
+	}
+
+	return buff.Bytes(), nil
 }
 
 func (s S3) assetURL(key string) string {
