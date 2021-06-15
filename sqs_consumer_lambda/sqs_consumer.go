@@ -24,7 +24,7 @@ const (
 
 var contextLogger = logrus.WithField("package", "sqs_consumer_lambda")
 
-type ConsumerForLambda struct {
+type Consumer struct {
 	handler           interface{}
 	waitForCompletion bool
 	redsyncEnabled    bool
@@ -33,7 +33,7 @@ type ConsumerForLambda struct {
 }
 
 // NewConsumer for AWS Lambda
-func NewConsumerForLambda(rd redis.Cache, handlers map[string]SNSMessageHandler) (*ConsumerForLambda, error) {
+func NewConsumer(rd redis.Cache, handlers map[string]SNSMessageHandler) (*Consumer, error) {
 	if len(handlers) == 0 {
 		return nil, errors.New("no handlers provided")
 	}
@@ -51,7 +51,7 @@ func NewConsumerForLambda(rd redis.Cache, handlers map[string]SNSMessageHandler)
 		[]redsync.Pool{rd.Pool},
 	)
 
-	return &ConsumerForLambda{
+	return &Consumer{
 		handler:           SNSMessageHandler(handler.HandleMessage),
 		waitForCompletion: true,
 		redsyncEnabled:    true,
@@ -59,7 +59,7 @@ func NewConsumerForLambda(rd redis.Cache, handlers map[string]SNSMessageHandler)
 	}, nil
 }
 
-func (c *ConsumerForLambda) Handle(sqsEvent events.SQSEvent) {
+func (c *Consumer) Handle(sqsEvent events.SQSEvent) {
 	wg := sync.WaitGroup{}
 	for _, record := range sqsEvent.Records {
 		wg.Add(1)
@@ -74,7 +74,7 @@ func (c *ConsumerForLambda) Handle(sqsEvent events.SQSEvent) {
 	}
 }
 
-func (c ConsumerForLambda) handleMessage(message events.SQSMessage) {
+func (c Consumer) handleMessage(message events.SQSMessage) {
 	logger := contextLogger.WithFields(logrus.Fields{
 		"receipt_handle": message.ReceiptHandle,
 		"message_id":     message.MessageId,
@@ -133,7 +133,7 @@ func (c ConsumerForLambda) handleMessage(message events.SQSMessage) {
 	}
 }
 
-func (c ConsumerForLambda) redsyncDefaultOptions() []redsync.Option {
+func (c Consumer) redsyncDefaultOptions() []redsync.Option {
 	return []redsync.Option{
 		redsync.SetExpiry(redsyncDefaultExpiry),
 		redsync.SetTries(1), // only try to lock once, then give up
