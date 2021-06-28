@@ -5,7 +5,7 @@ import (
 )
 
 // Get returns a key value pair from redis.
-func (c Cache) Get(key string) (string, error) {
+func (c cache) Get(key string) (string, error) {
 	conn := c.Conn()
 	defer conn.Close()
 
@@ -13,3 +13,13 @@ func (c Cache) Get(key string) (string, error) {
 
 	return reply, err
 }
+
+func (c cache) Exists(key string) (bool, error) {
+	conn := c.Conn()
+	defer conn.Close()
+
+	reply, err := redis.Bool(conn.Do("EXISTS", key))
+
+	return reply, err
+}
+

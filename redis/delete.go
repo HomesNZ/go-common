@@ -6,7 +6,7 @@ import (
 )
 
 // Delete removes a key from redis and returns its value
-func (c Cache) Delete(key string) (string, error) {
+func (c cache) Delete(key string) (string, error) {
 	conn := c.Conn()
 	defer conn.Close()
 
