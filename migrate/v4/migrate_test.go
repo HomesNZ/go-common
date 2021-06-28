@@ -3,9 +3,10 @@ package migrate
 import (
 	"context"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
-	"github.com/mna/redisc"
-	"time"
+	mockRedis "github.com/HomesNZ/go-common/redis/mock"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	"github.com/pkg/errors"
 
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -20,15 +21,18 @@ var (
 	adapter Postgres
 	db      *pgxpool.Pool
 	ctx     context.Context
+	redisCtrl *gomock.Controller
+	redisMock     *mockRedis.MockCache
 )
 
 func TestNewMigrator(t *testing.T) {
 	m := getMigrator()
 
-	if len(m.migrations) != 3 {
+	if len(m.Migrations(-1)) != 3 {
 		t.Errorf("Invalid number of migrations detected")
 	}
-	migration := m.migrations[1]
+	migrations := m.Migrations(-1)
+	migration := migrations[0]
 
 	if migration.Name != "test" {
 		t.Errorf("Invalid migration name detected: %s", migration.Name)
@@ -99,10 +103,12 @@ func TestMigrationAndRollback(t *testing.T) {
 	if err := row.Scan(&status); err != nil {
 		t.Error(err)
 	}
-	if status != Active || m.migrations[1].Status != Active {
+	migrations := m.Migrations(-1)
+
+	if status != Active || migrations[1].Status != Active {
 		t.Error("Invalid status for migration")
 	}
-	if err := m.RollbackN(ctx, len(m.migrations)+1, logger); err != nil {
+	if err := m.RollbackN(ctx, len(migrations)+1, logger); err != nil {
 		t.Error(err)
 	}
 
@@ -126,8 +132,8 @@ func TestMigrationAndRollback(t *testing.T) {
 	if err := row.Scan(&status); err != nil && err != pgx.ErrNoRows {
 		t.Error(err)
 	}
-	if m.migrations[1].Status != Inactive {
-		t.Errorf("Invalid status for migration, expected: %d, got: %v", Inactive, m.migrations[1].Status)
+	if migrations[1].Status != Inactive {
+		t.Errorf("Invalid status for migration, expected: %d, got: %v", Inactive, migrations[1].Status)
 	}
 
 	cleanup()
@@ -136,6 +142,8 @@ func TestMigrationAndRollback(t *testing.T) {
 //should Lock redis
 func TestLockSuccess(t *testing.T) {
 	m := getMigratorWithRedis()
+	redisMock.EXPECT().Exists(gomock.Any()).Return(true, nil)
+	redisMock.EXPECT().SetExpiry(gomock.Any(),gomock.Any(),gomock.Any()).Return(nil)
 	res, _ := m.Lock("test", logger)
 	assert.Equal(t, res, true)
 }
@@ -143,6 +151,7 @@ func TestLockSuccess(t *testing.T) {
 //should failure Locking, because key doen't exist
 func TestLockFailure(t *testing.T) {
 	m := getMigratorWithRedis()
+	redisMock.EXPECT().Exists(gomock.Any()).Return(false, errors.New("Error"))
 	res, _ := m.Lock("test", logger)
 
 	assert.Equal(t, res, false)
@@ -150,11 +159,12 @@ func TestLockFailure(t *testing.T) {
 
 func TestUnlock(t *testing.T) {
 	m := getMigratorWithRedis()
+	redisMock.EXPECT().Delete(gomock.Any()).Return("",nil)
 	err := m.Unlock("test")
 	assert.Equal(t, err, nil)
 }
 
-func getMigrator() *Migrator {
+func getMigrator() Migrator {
 	path := fmt.Sprintf("%s", "test_migrations")
 	m, err := NewMigrator(ctx, db, adapter, path, nil)
 	if err != nil {
@@ -163,43 +173,13 @@ func getMigrator() *Migrator {
 	return m
 }
 
-func getMigratorWithRedis() *Migrator {
-
-	redisCluster := &redisc.Cluster{
-		StartupNodes: []string{":6379"},
-		DialOptions:  []redis.DialOption{redis.DialConnectTimeout(2 * time.Second)},
-		CreatePool:   createPool,
-	}
-
+func getMigratorWithRedis() Migrator {
 	path := fmt.Sprintf("%s", "test_migrations")
-	m, err := NewMigrator(ctx, db, adapter, path, redisCluster)
+	m, err := NewMigrator(ctx, db, adapter, path, redisMock)
 	if err != nil {
 		panic(err)
 	}
 	return m
-}
-
-func createPool(addr string, opts ...redis.DialOption) (*redis.Pool, error) {
-	//mock := redigomock.NewConn()
-	//mock.Command(com, key).Expect(exp)
-	//
-	//p := &redis.Pool{
-	//	Dial: func() (redis.Conn, error) { return mock, nil },
-	//}
-
-	return &redis.Pool{
-		MaxIdle:     5,
-		MaxActive:   10,
-		IdleTimeout: time.Minute,
-		//Dial: func() (redis.Conn, error) { return mock, nil },
-		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", addr, opts...)
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}, nil
 }
 
 func cleanup() {
@@ -216,6 +196,8 @@ func init() {
 	adapter = Postgres{SchemaName: "test"}
 	ctx = context.Background()
 	db, err = pgxpool.Connect(ctx, "host=localhost user=postgres dbname=postgres sslmode=disable")
+	redisCtrl = gomock.NewController(GinkgoT())
+	redisMock = mockRedis.NewMockCache(redisCtrl)
 
 	if err != nil {
 		panic(err)

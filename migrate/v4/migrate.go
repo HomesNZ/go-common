@@ -3,6 +3,7 @@ package migrate
 import (
 	"context"
 	"errors"
+	"github.com/HomesNZ/go-common/redis"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,8 +11,6 @@ import (
 	"sort"
 
 	pgx "github.com/jackc/pgx/v4"
-	"github.com/mna/redisc"
-
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
 )
@@ -35,13 +34,25 @@ var (
 	NoActiveMigrations    = errors.New("No active migrations to rollback")
 )
 
-type Migrator struct {
+type Migrator interface {
+	Lock(key string, log logrus.FieldLogger) (bool, error)
+	Unlock(key string) error
+	MigrationTableExists(ctx context.Context) (bool, error)
+	CreateMigrationsTable(ctx context.Context) error
+	Migrate(ctx context.Context, log logrus.FieldLogger) error
+	Rollback(ctx context.Context, log logrus.FieldLogger) error
+	RollbackN(ctx context.Context, n int, log logrus.FieldLogger) error
+	RollbackAll(ctx context.Context, log logrus.FieldLogger) error
+	Migrations(status int) []*Migration
+}
+
+type migrator struct {
 	DB             *pgxpool.Pool
 	MigrationsPath string
 	dbAdapter      Postgres
 	migrations     map[uint64]*Migration
 	logger         Logger
-	Redis          *redisc.Cluster
+	Redis          redis.Cache
 }
 
 type Logger interface {
@@ -51,32 +62,27 @@ type Logger interface {
 	Fatalf(format string, v ...interface{})
 }
 
-func (m *Migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
-	conn := m.Redis.Get()
-	defer conn.Close()
-
-	reply, err := conn.Do("EXISTS", key)
+func (m *migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
+	reply, err := m.Redis.Exists(key)
 	if err != nil {
 		return false, err
 	}
-	switch reply.(int64) {
-	case 0:
-		_, err := conn.Do("SETEX", key, expirationTime, true)
+
+	if reply {
+		err := m.Redis.SetExpiry(key, "true", expirationTime) // conn.Do("SETEX", key, expirationTime, true)
 		return true, err
-	default:
-		return false, nil
 	}
+
+	return false, nil
 }
 
-func (m *Migrator) Unlock(key string) error {
-	conn := m.Redis.Get()
-	defer conn.Close()
-	_, err := conn.Do("DEL", key)
+func (m *migrator) Unlock(key string) error {
+	_, err := m.Redis.Delete(key)
 	return err
 }
 
 // Returns true if the migration table already exists.
-func (m *Migrator) MigrationTableExists(ctx context.Context) (bool, error) {
+func (m *migrator) MigrationTableExists(ctx context.Context) (bool, error) {
 	row := m.DB.QueryRow(ctx, m.dbAdapter.SelectMigrationTableSql(), migrationTableName)
 	var tableName string
 	err := row.Scan(&tableName)
@@ -93,7 +99,7 @@ func (m *Migrator) MigrationTableExists(ctx context.Context) (bool, error) {
 }
 
 // Creates the migrations table if it doesn't exist.
-func (m *Migrator) CreateMigrationsTable(ctx context.Context) error {
+func (m *migrator) CreateMigrationsTable(ctx context.Context) error {
 	_, err := m.DB.Exec(ctx, m.dbAdapter.CreateSchema())
 	if err != nil {
 		m.logger.Fatalf("Schema name was not provided for migrations: %v", err)
@@ -109,12 +115,12 @@ func (m *Migrator) CreateMigrationsTable(ctx context.Context) error {
 }
 
 // Returns a new migrator.
-func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redisc.Cluster) (*Migrator, error) {
+func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis redis.Cache) (Migrator, error) {
 	return NewMigratorWithLogger(ctx, db, adapter, migrationsPath, redis, log.New(os.Stderr, "[gomigrate] ", log.LstdFlags))
 }
 
 // Returns a new migrator with the specified logger.
-func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis *redisc.Cluster, logger Logger) (*Migrator, error) {
+func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis redis.Cache, logger Logger) (Migrator, error) {
 	// Normalize the migrations path.
 	path := []byte(migrationsPath)
 	pathLength := len(path)
@@ -124,7 +130,7 @@ func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgr
 
 	logger.Printf("Migrations path: %s", path)
 
-	migrator := Migrator{
+	m := migrator{
 		DB:             db,
 		MigrationsPath: string(path),
 		dbAdapter:      adapter,
@@ -134,29 +140,29 @@ func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgr
 	}
 
 	// Create the migrations table if it doesn't exist.
-	tableExists, err := migrator.MigrationTableExists(ctx)
+	tableExists, err := m.MigrationTableExists(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !tableExists {
-		if err := migrator.CreateMigrationsTable(ctx); err != nil {
+		if err := m.CreateMigrationsTable(ctx); err != nil {
 			return nil, err
 		}
 	}
 
 	// Get all metadata from the database.
-	if err := migrator.fetchMigrations(); err != nil {
+	if err := m.fetchMigrations(); err != nil {
 		return nil, err
 	}
-	if err := migrator.getMigrationStatuses(ctx); err != nil {
+	if err := m.getMigrationStatuses(ctx); err != nil {
 		return nil, err
 	}
 
-	return &migrator, nil
+	return &m, nil
 }
 
 // Populates a migrator with a sorted list of migrations from the file system.
-func (m *Migrator) fetchMigrations() error {
+func (m *migrator) fetchMigrations() error {
 	pathGlob := append([]byte(m.MigrationsPath), []byte("*")...)
 
 	matches, err := filepath.Glob(string(pathGlob))
@@ -204,7 +210,7 @@ func (m *Migrator) fetchMigrations() error {
 
 // Queries the migration table to determine the status of each
 // migration.
-func (m *Migrator) getMigrationStatuses(ctx context.Context) error {
+func (m *migrator) getMigrationStatuses(ctx context.Context) error {
 	for _, migration := range m.migrations {
 		row := m.DB.QueryRow(ctx, m.dbAdapter.GetMigrationSql(), migration.Id)
 		var mid uint64
@@ -227,7 +233,7 @@ func (m *Migrator) getMigrationStatuses(ctx context.Context) error {
 
 // Returns a sorted list of migration ids for a given status. -1 returns
 // all migrations.
-func (m *Migrator) Migrations(status int) []*Migration {
+func (m *migrator) Migrations(status int) []*Migration {
 	// Sort all migration ids.
 	ids := make([]uint64, 0)
 	for id, _ := range m.migrations {
@@ -247,7 +253,7 @@ func (m *Migrator) Migrations(status int) []*Migration {
 }
 
 // Applies a single migration.
-func (m *Migrator) ApplyMigration(ctx context.Context, migration *Migration, mType migrationType) error {
+func (m *migrator) applyMigration(ctx context.Context, migration *Migration, mType migrationType) error {
 	var path string
 	if mType == upMigration {
 		path = migration.UpPath
@@ -324,7 +330,7 @@ func (m *Migrator) ApplyMigration(ctx context.Context, migration *Migration, mTy
 }
 
 // Applies all inactive migrations.
-func (m *Migrator) Migrate(ctx context.Context, log logrus.FieldLogger) error {
+func (m *migrator) Migrate(ctx context.Context, log logrus.FieldLogger) error {
 
 	if m.Redis != nil {
 		free, err := m.Lock(m.dbAdapter.SchemaName+migrationLock, log)
@@ -344,7 +350,7 @@ func (m *Migrator) Migrate(ctx context.Context, log logrus.FieldLogger) error {
 	}
 
 	for _, migration := range m.Migrations(Inactive) {
-		if err := m.ApplyMigration(ctx, migration, upMigration); err != nil {
+		if err := m.applyMigration(ctx, migration, upMigration); err != nil {
 			return err
 		}
 	}
@@ -352,12 +358,12 @@ func (m *Migrator) Migrate(ctx context.Context, log logrus.FieldLogger) error {
 }
 
 // Rolls back the last migration.
-func (m *Migrator) Rollback(ctx context.Context, log logrus.FieldLogger) error {
+func (m *migrator) Rollback(ctx context.Context, log logrus.FieldLogger) error {
 	return m.RollbackN(ctx, 1, log)
 }
 
 // Rolls back N migrations.
-func (m *Migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger) error {
+func (m *migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger) error {
 
 	if m.Redis != nil {
 		free, err := m.Lock(m.dbAdapter.SchemaName+rollbackLock, log)
@@ -387,7 +393,7 @@ func (m *Migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger)
 	last_migration := len(migrations) - 1 - n
 
 	for i := len(migrations) - 1; i != last_migration; i-- {
-		if err := m.ApplyMigration(ctx, migrations[i], downMigration); err != nil {
+		if err := m.applyMigration(ctx, migrations[i], downMigration); err != nil {
 			return err
 		}
 	}
@@ -396,7 +402,7 @@ func (m *Migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger)
 }
 
 // Rolls back all migrations.
-func (m *Migrator) RollbackAll(ctx context.Context, log logrus.FieldLogger) error {
+func (m *migrator) RollbackAll(ctx context.Context, log logrus.FieldLogger) error {
 	migrations := m.Migrations(Active)
 	return m.RollbackN(ctx, len(migrations), log)
 }
