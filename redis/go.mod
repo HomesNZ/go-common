@@ -10,6 +10,8 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.5
 	github.com/mna/redisc v1.2.1
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.13.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 )

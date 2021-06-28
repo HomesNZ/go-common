@@ -1,12 +1,10 @@
 package redis
 
 import (
-	"fmt"
+	"github.com/HomesNZ/go-common/redis/config"
 	"github.com/cenkalti/backoff"
 	"github.com/gomodule/redigo/redis"
 	"github.com/mna/redisc"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -26,31 +24,13 @@ type Cache interface {
 }
 
 type cache struct {
-	Pool *redisc.Cluster
-	cfg  *Config
+	pool *redisc.Cluster
+	cfg  config.Config
 }
 
 // Conn returns an active connection to the cache
 func (c cache) Conn() redis.Conn {
-	return c.Pool.Get()
-}
-
-func addr(cfg *Config) string {
-	return fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
-}
-
-func NewCache(cfg *Config) (*cache, error) {
-	redisPool := &redisc.Cluster{
-		CreatePool:   createPool,
-		StartupNodes: []string{addr(cfg)},
-	}
-	log.Infof("Attempting to connect to redis: %s", addr(cfg))
-	err := verifyConnection(redisPool.Get())
-	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to connect to redis")
-	}
-	log.Info("Connected to redis")
-	return &cache{Pool: redisPool, cfg: cfg}, nil
+	return c.pool.Get()
 }
 
 func createPool(address string, options ...redis.DialOption) (*redis.Pool, error) {
