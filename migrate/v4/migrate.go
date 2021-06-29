@@ -3,12 +3,13 @@ package migrate
 import (
 	"context"
 	"errors"
-	"github.com/HomesNZ/go-common/redis"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/HomesNZ/go-common/redis"
 
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -68,7 +69,7 @@ func (m *migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
 		return false, err
 	}
 
-	if reply {
+	if !reply {
 		err := m.Redis.SetExpiry(key, "true", expirationTime) // conn.Do("SETEX", key, expirationTime, true)
 		return true, err
 	}
