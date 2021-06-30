@@ -7,12 +7,6 @@ import (
 	"github.com/HomesNZ/go-common/sns"
 )
 
-var defaultEventSender EventSender
-
-func init() {
-	defaultEventSender = NewEventSender()
-}
-
 type Event struct {
 	Type    string    `json:"type"`
 	Created time.Time `json:"created"`
