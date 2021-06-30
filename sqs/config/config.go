@@ -36,9 +36,9 @@ func (c config) Region() string {
 
 func (c config) validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.queueName, validation.Required, validation.Required.Error("AWS_SQS_QUEUE was not provided")),
-		validation.Field(&c.accessKeyID, validation.Required, validation.Required.Error("AWS_ACCESS_KEY_ID was not provided")),
-		validation.Field(&c.secretAccessKey, validation.Required, validation.Required.Error("AWS_SECRET_ACCESS_KEY was not provided")),
-		validation.Field(&c.region, validation.Required, validation.Required.Error("AWS_SQS_REGION was not provided")),
+		validation.Field(&c.queueName, validation.Required.Error("AWS_SQS_QUEUE was not provided")),
+		validation.Field(&c.accessKeyID, validation.Required.Error("AWS_ACCESS_KEY_ID was not provided")),
+		validation.Field(&c.secretAccessKey, validation.Required.Error("AWS_SECRET_ACCESS_KEY was not provided")),
+		validation.Field(&c.region, validation.Required.Error("AWS_SQS_REGION was not provided")),
 	)
 }
