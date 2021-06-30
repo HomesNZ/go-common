@@ -90,7 +90,7 @@ func (c consumer) receive() {
 			contextLogger.Debug("waiting for request...")
 			params := &sqs.ReceiveMessageInput{
 				QueueUrl:            aws.String(c.queueUrl),
-				MaxNumberOfMessages: aws.Int64(maxMessages),
+				MaxNumberOfMessages: aws.Int64(int64(c.batchSize)),
 				VisibilityTimeout:   aws.Int64(defaultVisibilityTimeout),
 				WaitTimeSeconds:     aws.Int64(defaultWaitSeconds),
 				MessageAttributeNames: aws.StringSlice([]string{
