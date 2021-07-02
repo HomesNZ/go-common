@@ -7,12 +7,6 @@ import (
 	"github.com/HomesNZ/go-common/sns"
 )
 
-var defaultEventSender *EventSender
-
-func init() {
-	defaultEventSender = NewEventSender()
-}
-
 type Event struct {
 	Type    string    `json:"type"`
 	Created time.Time `json:"created"`
@@ -33,18 +27,22 @@ type EventTyper interface {
 	EventType() string
 }
 
-type EventSender struct {
+type EventSender interface {
+	Send(ev EventTyper) error
+}
+
+type eventSender struct {
 	mu     sync.Mutex
 	topics map[string]*sns.Topic
 }
 
-func NewEventSender() *EventSender {
-	return &EventSender{
+func NewEventSender() EventSender {
+	return &eventSender{
 		topics: make(map[string]*sns.Topic),
 	}
 }
 
-func (e *EventSender) Send(ev EventTyper) error {
+func (e *eventSender) Send(ev EventTyper) error {
 	topic, err := e.initTopic(ev.EventType())
 	if err != nil {
 		return err
@@ -53,7 +51,7 @@ func (e *EventSender) Send(ev EventTyper) error {
 	return err
 }
 
-func (e *EventSender) initTopic(name string) (*sns.Topic, error) {
+func (e *eventSender) initTopic(name string) (*sns.Topic, error) {
 	topic, ok := e.getTopic(name)
 	if ok {
 		return topic, nil
@@ -66,14 +64,14 @@ func (e *EventSender) initTopic(name string) (*sns.Topic, error) {
 	return topic, nil
 }
 
-func (e *EventSender) getTopic(name string) (*sns.Topic, bool) {
+func (e *eventSender) getTopic(name string) (*sns.Topic, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	topic, ok := e.topics[name]
 	return topic, ok
 }
 
-func (e *EventSender) setTopic(name string, topic *sns.Topic) {
+func (e *eventSender) setTopic(name string, topic *sns.Topic) {
 	e.mu.Lock()
 	e.topics[name] = topic
 	e.mu.Unlock()
