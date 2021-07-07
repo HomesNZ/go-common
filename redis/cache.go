@@ -1,11 +1,12 @@
 package redis
 
 import (
+	"time"
+
 	"github.com/HomesNZ/go-common/redis/config"
 	"github.com/cenkalti/backoff"
 	"github.com/gomodule/redigo/redis"
 	"github.com/mna/redisc"
-	"time"
 )
 
 var (
@@ -21,6 +22,8 @@ type Cache interface {
 	SetExpiry(key, val string, expireTime int) error
 	SetExpiryTime(key, val string, expireTime time.Time) error
 	Subscribe(subscription string, handleResponse func(interface{}))
+	IsProcessed(lockable Lockable) (bool, error)
+	MarkProcessed(lockable Lockable) error
 }
 
 type cache struct {
