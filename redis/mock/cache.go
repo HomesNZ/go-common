@@ -162,3 +162,23 @@ func (mr *MockCacheMockRecorder) Subscribe(subscription, handleResponse interfac
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockCache)(nil).Subscribe), subscription, handleResponse)
 }
+
+// Do mocks base method.
+func (m *MockCache) Do(commandName string, args ...interface{}) (interface{}, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{commandName}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Do", varargs...)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Do indicates an expected call of Do.
+func (mr *MockCacheMockRecorder) Do(commandName interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{commandName}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Do", reflect.TypeOf((*MockCache)(nil).Do), varargs...)
+}

@@ -24,6 +24,7 @@ type Cache interface {
 	Subscribe(subscription string, handleResponse func(interface{}))
 	IsProcessed(lockable Lockable) (bool, error)
 	MarkProcessed(lockable Lockable) error
+	Do(commandName string, args ...interface{}) (reply interface{}, err error)
 }
 
 type cache struct {
