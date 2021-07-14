@@ -5,7 +5,7 @@ import "github.com/gomodule/redigo/redis"
 func (c cache) ListPush(listName string, val ...string) error {
 	conn := c.Conn()
 	defer conn.Close()
-	values := make([]interface{}, 0 , len(val))
+	values := make([]interface{}, 0, len(val)+1)
 	values = append(values, listName)
 	for _, v := range val {
 		values = append(values, v)
