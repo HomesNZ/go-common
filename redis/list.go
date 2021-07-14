@@ -1,0 +1,27 @@
+package redis
+
+import "github.com/gomodule/redigo/redis"
+
+func (c cache) ListPush(listName string, val ...string) error {
+	conn := c.Conn()
+	defer conn.Close()
+	_, err := conn.Do("LPUSH", listName, val)
+	return err
+}
+
+func (c cache) ListLen(listName string) (int, error) {
+	conn := c.Conn()
+	defer conn.Close()
+	return redis.Int(conn.Do("LLEN", listName))
+}
+func (c cache) ListPop(listName string, elements int) ([]string, error) {
+	conn := c.Conn()
+	defer conn.Close()
+	return redis.Strings(conn.Do("LPOP", listName, elements))
+}
+
+func (c cache) ListValues(listName string) ([]string, error) {
+	conn := c.Conn()
+	defer conn.Close()
+	return redis.Strings(conn.Do("LRANGE", listName, 0, -1))
+}

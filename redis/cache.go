@@ -24,7 +24,10 @@ type Cache interface {
 	Subscribe(subscription string, handleResponse func(interface{}))
 	IsProcessed(lockable Lockable) (bool, error)
 	MarkProcessed(lockable Lockable) error
-	Do(commandName string, args ...interface{}) (reply interface{}, err error)
+	ListPush(listName string, val ...string) error           //  Insert all the specified values at the head of the list stored at key. If key does not exist, it is created as empty list before performing the push operations
+	ListLen(listName string) (int, error)                    // Returns the length of the list stored at key.
+	ListPop(listName string, elements int) ([]string, error) /// Removes and returns the N elements of the list stored at key.
+	ListValues(listName string) ([]string, error)            // Returns the elements of the list stored at key.
 }
 
 type cache struct {

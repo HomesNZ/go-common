@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+//TODO: REMOVE IT
 // Lockable interface defines the
 // way we can compare and decide if redis lock exist
 // and whether existing lock
