@@ -162,3 +162,67 @@ func (mr *MockCacheMockRecorder) Subscribe(subscription, handleResponse interfac
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockCache)(nil).Subscribe), subscription, handleResponse)
 }
+
+// ListLen mocks base method.
+func (m *MockCache) ListLen(listName string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListLen", listName)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListLen indicates an expected call of ListLen.
+func (mr *MockCacheMockRecorder) ListLen(listName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLen", reflect.TypeOf((*MockCache)(nil).ListLen), listName)
+}
+
+// ListPop mocks base method.
+func (m *MockCache) ListPop(listName string, elements int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPop", listName, elements)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPop indicates an expected call of ListPop.
+func (mr *MockCacheMockRecorder) ListPop(listName, elements interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPop", reflect.TypeOf((*MockCache)(nil).ListPop), listName, elements)
+}
+
+// ListPush mocks base method.
+func (m *MockCache) ListPush(listName string, val ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{listName}
+	for _, a := range val {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListPush", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ListPush indicates an expected call of ListPush.
+func (mr *MockCacheMockRecorder) ListPush(listName interface{}, val ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{listName}, val...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPush", reflect.TypeOf((*MockCache)(nil).ListPush), varargs...)
+}
+
+// ListValues mocks base method.
+func (m *MockCache) ListValues(listName string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListValues", listName)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListValues indicates an expected call of ListValues.
+func (mr *MockCacheMockRecorder) ListValues(listName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListValues", reflect.TypeOf((*MockCache)(nil).ListValues), listName)
+}
