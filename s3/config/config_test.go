@@ -16,11 +16,11 @@ func TestGeocoder(t *testing.T) {
 var _ = Describe("Config", func() {
 	Describe("#validate", func() {
 		It("returns an error", func() {
-			err := Config{}.Validate()
+			err := config{}.Validate()
 			Expect(err).To(HaveOccurred())
 		})
 		It("does not return an error", func() {
-			err := Config{AccessKeyID: "key-id", SecretAccessKey: "secret", BucketName: "test-bucket"}.Validate()
+			err := config{accessKeyID: "key-id", secretAccessKey: "secret", bucketName: "test-bucket"}.Validate()
 			Expect(err).NotTo(HaveOccurred())
 		})
 

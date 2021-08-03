@@ -3,6 +3,8 @@ package s3
 import (
 	"bytes"
 	"fmt"
+	"time"
+
 	"github.com/HomesNZ/go-common/s3/config"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -10,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type Service interface {
@@ -22,7 +23,7 @@ type Service interface {
 // S3 is a concrete implementation of cdn.Interface backed by S3 and Cloudfront.
 type s3 struct {
 	client *awsS3.S3
-	config *config.Config
+	config config.Config
 }
 
 // UploadAsset uploads a new asset to S3 with the provided key. The URL returned will be the Cloudfront asset url ifcc
@@ -31,9 +32,9 @@ func (s s3) Upload(key string, b []byte, expiry time.Time, contentType string) (
 	reader := bytes.NewReader(b)
 
 	params := &awsS3.PutObjectInput{
-		Bucket:        aws.String(s.config.BucketName),
+		Bucket:        aws.String(s.config.BucketName()),
 		Key:           aws.String(key),
-		ACL:           aws.String(s.config.ACL),
+		ACL:           aws.String(s.config.ACL()),
 		Body:          reader,
 		ContentLength: aws.Int64(int64(reader.Len())),
 		ContentType:   &contentType,
@@ -53,7 +54,7 @@ func (s s3) Upload(key string, b []byte, expiry time.Time, contentType string) (
 
 func (s s3) Delete(key string) (string, error) {
 	params := &awsS3.DeleteObjectInput{
-		Bucket: aws.String(s.config.BucketName),
+		Bucket: aws.String(s.config.BucketName()),
 		Key:    aws.String(key),
 	}
 
@@ -68,11 +69,11 @@ func (s s3) Delete(key string) (string, error) {
 
 func (s s3) Download(key string) ([]byte, error) {
 	buff := &aws.WriteAtBuffer{}
-	sess, _ := session.NewSession(&aws.Config{Region: aws.String(s.config.Region)})
+	sess, _ := session.NewSession(&aws.Config{Region: aws.String(s.config.Region())})
 	downloader := s3manager.NewDownloader(sess)
 	_, err := downloader.Download(buff,
 		&awsS3.GetObjectInput{
-			Bucket: aws.String(s.config.BucketName),
+			Bucket: aws.String(s.config.BucketName()),
 			Key:    aws.String(key),
 		})
 
@@ -84,8 +85,8 @@ func (s s3) Download(key string) ([]byte, error) {
 }
 
 func (s s3) assetURL(key string) string {
-	if s.config.CloudfrontURL != "" {
-		return fmt.Sprintf("%s/%s", s.config.CloudfrontURL, key)
+	if s.config.CloudfrontURL() != "" {
+		return fmt.Sprintf("%s/%s", s.config.CloudfrontURL(), key)
 	}
 
 	return fmt.Sprintf("%s/%s", s.client.Endpoint, key)
