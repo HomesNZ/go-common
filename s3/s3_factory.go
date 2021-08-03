@@ -10,7 +10,7 @@ import (
 
 // New initializes a new S3. If cloudfrontURL is not nil, URLs returned from UploadAsset will return the assets URL on
 // Cloudfront distibution, otherwise the raw S3 URL will be returned.
-func New(cfg *config.Config) (Service, error) {
+func New(cfg config.Config) (Service, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -25,14 +25,14 @@ func NewFromEnv() (Service, error) {
 	return newService(cfg), nil
 }
 
-func newService(cfg *config.Config) Service {
+func newService(cfg config.Config) Service {
 	awsConfig := &aws.Config{
-		Region:           aws.String(cfg.Region),
-		Endpoint:         aws.String(cfg.Endpoint),
+		Region:           aws.String(cfg.Region()),
+		Endpoint:         aws.String(cfg.Endpoint()),
 		S3ForcePathStyle: aws.Bool(true),
 		Credentials: credentials.NewCredentials(&credentials.StaticProvider{Value: credentials.Value{
-			AccessKeyID:     cfg.AccessKeyID,
-			SecretAccessKey: cfg.SecretAccessKey,
+			AccessKeyID:     cfg.AccessKeyID(),
+			SecretAccessKey: cfg.SecretAccessKey(),
 		}}),
 	}
 

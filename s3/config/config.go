@@ -26,6 +26,9 @@ type Config interface {
 	ACL() string
 	CloudfrontURL() string
 	Region() string
+	Endpoint() string
+	AccessKeyID() string
+	SecretAccessKey() string
 }
 
 func NewFromEnv() (Config, error) {
@@ -60,6 +63,18 @@ func (c *config) CloudfrontURL() string {
 
 func (c *config) Region() string {
 	return c.region
+}
+
+func (c *config) Endpoint() string {
+	return c.endpoint
+}
+
+func (c *config) AccessKeyID() string {
+	return c.accessKeyID
+}
+
+func (c *config) SecretAccessKey() string {
+	return c.secretAccessKey
 }
 
 func (c *config) Validate() error {
