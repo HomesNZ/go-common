@@ -179,18 +179,18 @@ func (mr *MockCacheMockRecorder) ListLen(listName interface{}) *gomock.Call {
 }
 
 // ListPop mocks base method.
-func (m *MockCache) ListPop(listName string, elements int) ([]string, error) {
+func (m *MockCache) ListPop(listName string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPop", listName, elements)
-	ret0, _ := ret[0].([]string)
+	ret := m.ctrl.Call(m, "ListPop", listName)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListPop indicates an expected call of ListPop.
-func (mr *MockCacheMockRecorder) ListPop(listName, elements interface{}) *gomock.Call {
+func (mr *MockCacheMockRecorder) ListPop(listName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPop", reflect.TypeOf((*MockCache)(nil).ListPop), listName, elements)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPop", reflect.TypeOf((*MockCache)(nil).ListPop), listName)
 }
 
 // ListPush mocks base method.
