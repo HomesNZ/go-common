@@ -19,10 +19,10 @@ func (c cache) ListLen(listName string) (int, error) {
 	defer conn.Close()
 	return redis.Int(conn.Do("LLEN", listName))
 }
-func (c cache) ListPop(listName string) ([]string, error) {
+func (c cache) ListPop(listName string) (string, error) {
 	conn := c.Conn()
 	defer conn.Close()
-	return redis.Strings(conn.Do("LPOP", listName))
+	return redis.String(conn.Do("LPOP", listName))
 }
 
 func (c cache) ListValues(listName string) ([]string, error) {

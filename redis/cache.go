@@ -26,7 +26,7 @@ type Cache interface {
 	MarkProcessed(lockable Lockable) error
 	ListPush(listName string, val ...string) error // Insert all the specified values at the head of the list stored at key. If key does not exist, it is created as empty list before performing the push operations
 	ListLen(listName string) (int, error)          // Returns the length of the list stored at key.
-	ListPop(listName string) ([]string, error)     // Removes and returns the top element of the list stored at key.
+	ListPop(listName string) (string, error)     // Removes and returns the top element of the list stored at key.
 	ListValues(listName string) ([]string, error)  // Returns the elements of the list stored at key.
 }
 
