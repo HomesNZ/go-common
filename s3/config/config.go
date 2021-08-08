@@ -77,7 +77,7 @@ func (c *config) SecretAccessKey() string {
 	return c.secretAccessKey
 }
 
-func (c *config) Validate() error {
+func (c config) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.accessKeyID, validation.Required, validation.Required.Error("AWS access key was not provided")),
 		validation.Field(&c.secretAccessKey, validation.Required, validation.Required.Error("AWS secret access key was not provided")),
