@@ -18,8 +18,8 @@ func New(cfg *config.Config) (Service, error) {
 }
 
 func NewFromEnv() (Service, error) {
-	cfg, err := config.NewFromEnv()
-	if err != nil {
+	cfg := config.NewFromEnv()
+	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 	return newService(cfg), nil

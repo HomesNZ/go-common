@@ -20,7 +20,7 @@ type Config struct {
 	SecretAccessKey string
 }
 
-func NewFromEnv() (*Config, error) {
+func NewFromEnv() *Config {
 	cfg := &Config{
 		ACL:             env.GetString("AWS_S3_ACL", "private"),
 		Region:          env.GetString("AWS_S3_REGION", "ap-southeast-2"),
@@ -31,11 +31,7 @@ func NewFromEnv() (*Config, error) {
 		SecretAccessKey: env.GetString("AWS_SECRET_ACCESS_KEY", ""),
 	}
 
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
-
-	return cfg, nil
+	return cfg
 }
 
 func (c *Config) Validate() error {
