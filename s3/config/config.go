@@ -36,8 +36,8 @@ func NewFromEnv() *Config {
 
 func (c *Config) Validate() error {
 	return validation.ValidateStruct(c,
-		validation.Field(c.AccessKeyID, validation.Required, validation.Required.Error("AWS access key was not provided")),
-		validation.Field(c.SecretAccessKey, validation.Required, validation.Required.Error("AWS secret access key was not provided")),
-		validation.Field(c.BucketName, validation.Required, validation.Required.Error("Bucket name was not provided")),
+		validation.Field(&c.AccessKeyID, validation.Required, validation.Required.Error("AWS access key was not provided")),
+		validation.Field(&c.SecretAccessKey, validation.Required, validation.Required.Error("AWS secret access key was not provided")),
+		validation.Field(&c.BucketName, validation.Required, validation.Required.Error("Bucket name was not provided")),
 	)
 }
