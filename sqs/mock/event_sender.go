@@ -2,7 +2,7 @@
 // Source: sqs/event_sender.go
 
 // Package mock_sqs is a generated GoMock package.
-package mock_sqs
+package mock
 
 import (
 	reflect "reflect"
