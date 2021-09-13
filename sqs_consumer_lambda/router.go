@@ -13,7 +13,7 @@ type Router struct {
 	routes map[string]SNSMessageHandler
 }
 
-func NewRouter() *Router {
+func newRouter() *Router {
 	return &Router{
 		routes: map[string]SNSMessageHandler{},
 	}
