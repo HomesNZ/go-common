@@ -4,39 +4,36 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/HomesNZ/go-common/env"
+	"github.com/HomesNZ/go-common/dbclient/v4/config"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/pkg/errors"
 )
 
-const DefaultMaxConnect = 1
-
-type Config struct {
-	ServiceName string
-	Host        string
-	User        string
-	Name        string
-	Password    string
-	MaxConns    int
-	Port        int
-	SearchPath  string
+func New(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, errors.Wrap(err, "DB")
+	}
+	config, err := connectionConfig(cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "DB")
+	}
+	return pgxpool.ConnectConfig(ctx, config)
 }
 
-// ConfigEnv returns config, all settings will be pulled from environment variables
-func ConfigFromEnv(serviceName string) Config {
-	return Config{
-		ServiceName: serviceName,
-		Host:        env.GetString("DB_HOST", "localhost"),
-		User:        env.GetString("DB_USER", "postgres"),
-		Name:        env.MustGetString("DB_NAME"),
-		Password:    env.GetString("DB_PASSWORD", ""),
-		Port:        env.GetInt("DB_PORT", 5432),
-		SearchPath:  env.GetString("DB_SEARCH_PATH", ""),
-		MaxConns:    DefaultMaxConnect,
+func NewFromEnv(ctx context.Context) (*pgxpool.Pool, error) {
+	cfg := config.NewFromEnv()
+	if err := cfg.Validate(); err != nil {
+		return nil, errors.Wrap(err, "DB")
 	}
+	config, err := connectionConfig(cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "DB")
+	}
+	return pgxpool.ConnectConfig(ctx, config)
 }
 
 // connectionConfig returns the database connection config and error
-func connectionConfig(cfg *Config) (*pgxpool.Config, error) {
+func connectionConfig(cfg *config.Config) (*pgxpool.Config, error) {
 	connStr := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%d pool_max_conns=%d",
 		cfg.Host,
 		cfg.User,
@@ -57,14 +54,5 @@ func connectionConfig(cfg *Config) (*pgxpool.Config, error) {
 
 	config, err := pgxpool.ParseConfig(connStr)
 	config.ConnConfig.PreferSimpleProtocol = true
-	return config, err
-}
-
-// Conn returns pgx connection pool and error
-func Conn(ctx context.Context, cfg *Config) (*pgxpool.Pool, error) {
-	config, err := connectionConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return pgxpool.ConnectConfig(ctx, config)
+	return config, errors.Wrap(err, "DB failed to parse config")
 }
