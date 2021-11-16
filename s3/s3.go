@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"github.com/HomesNZ/go-common/s3/config"
 
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
-	 awsS3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awsS3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/pkg/errors"
 )
 
@@ -33,6 +34,7 @@ func (s s3) Upload(ctx context.Context, key string, b []byte, expiry time.Time, 
 
 	params := &awsS3.PutObjectInput{
 		Key:           aws.String(key),
+		Bucket:        &s.config.BucketName,
 		ACL:           s.config.ACL,
 		Body:          reader,
 		ContentLength: int64(reader.Len()),
@@ -54,6 +56,7 @@ func (s s3) Upload(ctx context.Context, key string, b []byte, expiry time.Time, 
 
 func (s s3) Delete(ctx context.Context, key string) error {
 	params := &awsS3.DeleteObjectInput{
+		Bucket: &s.config.BucketName,
 		Key:    aws.String(key),
 	}
 
@@ -70,6 +73,7 @@ func (s s3) Download(ctx context.Context, key string) ([]byte, error) {
 	downloader := manager.NewDownloader(s.client)
 	_, err := downloader.Download(ctx, file,
 		&awsS3.GetObjectInput{
+			Bucket: &s.config.BucketName,
 			Key:    aws.String(key),
 		})
 

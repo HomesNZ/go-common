@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+
 	"github.com/HomesNZ/go-common/s3/config"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCred "github.com/aws/aws-sdk-go-v2/credentials"
@@ -30,7 +31,6 @@ func newService(ctx context.Context, cfg *config.Config) (Service, error) {
 	awsCfg, err := awsConfig.LoadDefaultConfig(ctx,
 		awsConfig.WithRegion(cfg.Region),
 		awsConfig.WithCredentialsProvider(creds),
-		awsConfig.WithRegion(cfg.BucketName),
 	)
 	if err != nil {
 		return nil, err
