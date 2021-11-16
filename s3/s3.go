@@ -2,78 +2,74 @@ package s3
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"github.com/HomesNZ/go-common/s3/config"
+
 	"time"
 
-	"github.com/HomesNZ/go-common/s3/config"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	awsS3 "github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	 awsS3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type Service interface {
-	Upload(key string, b []byte, expiry time.Time, contentType string) (url string, err error)
-	Delete(key string) (string, error)
-	Download(key string) ([]byte, error)
+	Upload(ctx context.Context, key string, b []byte, expiry time.Time, contentType string) (url string, err error)
+	Delete(ctx context.Context, key string) error
+	Download(ctx context.Context, key string) ([]byte, error)
 }
 
 // S3 is a concrete implementation of cdn.Interface backed by S3 and Cloudfront.
 type s3 struct {
-	client *awsS3.S3
+	client *awsS3.Client
 	config *config.Config
 }
 
 // UploadAsset uploads a new asset to S3 with the provided key. The URL returned will be the Cloudfront asset url ifcc
 // S3.CloudfrontURL is not nil, otherwise a raw S3 URL is returned.
-func (s s3) Upload(key string, b []byte, expiry time.Time, contentType string) (url string, err error) {
+func (s s3) Upload(ctx context.Context, key string, b []byte, expiry time.Time, contentType string) (url string, err error) {
 	reader := bytes.NewReader(b)
 
 	params := &awsS3.PutObjectInput{
-		Bucket:        aws.String(s.config.BucketName),
 		Key:           aws.String(key),
-		ACL:           aws.String(s.config.ACL),
+		ACL:           s.config.ACL,
 		Body:          reader,
-		ContentLength: aws.Int64(int64(reader.Len())),
+		ContentLength: int64(reader.Len()),
 		ContentType:   &contentType,
 	}
 
 	if !expiry.IsZero() {
-		params.SetExpires(expiry)
+		params.Expires = &expiry
 	}
 
-	_, err = s.client.PutObject(params)
+	uploader := manager.NewUploader(s.client)
+	result, err := uploader.Upload(ctx, params)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to upload asset to aws S3 bucket")
 	}
 
-	return s.assetURL(key), nil
+	return result.Location, nil
 }
 
-func (s s3) Delete(key string) (string, error) {
+func (s s3) Delete(ctx context.Context, key string) error {
 	params := &awsS3.DeleteObjectInput{
-		Bucket: aws.String(s.config.BucketName),
 		Key:    aws.String(key),
 	}
 
-	resp, err := s.client.DeleteObject(params)
+	_, err := s.client.DeleteObject(ctx, params)
 	if err != nil {
-		logrus.Error(err)
-		return resp.String(), errors.Wrap(err, "Failed to delete asset from aws S3 bucket")
+		return errors.Wrap(err, "Failed to delete asset from aws S3 bucket")
 	}
 
-	return resp.String(), nil
+	return nil
 }
 
-func (s s3) Download(key string) ([]byte, error) {
-	buff := &aws.WriteAtBuffer{}
-	sess, _ := session.NewSession(&aws.Config{Region: aws.String(s.config.Region)})
-	downloader := s3manager.NewDownloader(sess)
-	_, err := downloader.Download(buff,
+func (s s3) Download(ctx context.Context, key string) ([]byte, error) {
+	file := &manager.WriteAtBuffer{}
+	downloader := manager.NewDownloader(s.client)
+	_, err := downloader.Download(ctx, file,
 		&awsS3.GetObjectInput{
-			Bucket: aws.String(s.config.BucketName),
 			Key:    aws.String(key),
 		})
 
@@ -81,7 +77,7 @@ func (s s3) Download(key string) ([]byte, error) {
 		return nil, errors.Wrap(err, "Failed to download asset from aws S3 bucket")
 	}
 
-	return buff.Bytes(), nil
+	return file.Bytes(), nil
 }
 
 func (s s3) assetURL(key string) string {
@@ -89,5 +85,5 @@ func (s s3) assetURL(key string) string {
 		return fmt.Sprintf("%s/%s", s.config.CloudfrontURL, key)
 	}
 
-	return fmt.Sprintf("%s/%s", s.client.Endpoint, key)
+	return fmt.Sprintf("%s/%s", s.config.Endpoint, key)
 }
