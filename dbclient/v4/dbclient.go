@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	pgx "github.com/jackc/pgx/v4"
+
 	"github.com/HomesNZ/go-common/dbclient/v4/config"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
@@ -55,8 +57,10 @@ func connectionConfig(cfg *config.Config) (*pgxpool.Config, error) {
 	config, err := pgxpool.ParseConfig(connStr)
 	config.ConnConfig.PreferSimpleProtocol = true
 	if cfg.StandardConformingStrings {
-		config.ConnConfig.RuntimeParams = map[string]string{
-			"standard_conforming_strings": "on",
+		config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+			_, err := conn.Exec(ctx, "SET standard_conforming_strings TO ON")
+
+			return err
 		}
 	}
 
