@@ -55,7 +55,7 @@ func connectionConfig(cfg *config.Config) (*pgxpool.Config, error) {
 	config, err := pgxpool.ParseConfig(connStr)
 	config.ConnConfig.PreferSimpleProtocol = true
 	if cfg.StandardConformingStrings {
-		config.ConnString.RuntimeParams = map[string]string{
+		config.ConnConfig.RuntimeParams = map[string]string{
 			"standard_conforming_strings": "on",
 		}
 	}
