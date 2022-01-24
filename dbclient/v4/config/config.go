@@ -6,26 +6,28 @@ import (
 )
 
 type Config struct {
-	ServiceName string
-	Host        string
-	User        string
-	Name        string
-	Password    string
-	MaxConns    int
-	Port        int
-	SearchPath  string
+	ServiceName               string
+	Host                      string
+	User                      string
+	Name                      string
+	Password                  string
+	MaxConns                  int
+	Port                      int
+	SearchPath                string
+	StandardConformingStrings bool
 }
 
 func NewFromEnv() *Config {
 	cfg := &Config{
-		ServiceName: env.GetString("SERVICE_NAME", ""),
-		Host:        env.GetString("DB_HOST", "localhost"),
-		User:        env.GetString("DB_USER", "postgres"),
-		Name:        env.GetString("DB_NAME", ""),
-		Password:    env.GetString("DB_PASSWORD", ""),
-		MaxConns:    env.GetInt("DB_MAX_CONNECT", 1),
-		Port:        env.GetInt("DB_PORT", 5432),
-		SearchPath:  env.GetString("DB_SEARCH_PATH", ""),
+		ServiceName:               env.GetString("SERVICE_NAME", ""),
+		Host:                      env.GetString("DB_HOST", "localhost"),
+		User:                      env.GetString("DB_USER", "postgres"),
+		Name:                      env.GetString("DB_NAME", ""),
+		Password:                  env.GetString("DB_PASSWORD", ""),
+		MaxConns:                  env.GetInt("DB_MAX_CONNECT", 1),
+		Port:                      env.GetInt("DB_PORT", 5432),
+		SearchPath:                env.GetString("DB_SEARCH_PATH", ""),
+		StandardConformingStrings: env.GetBoolOrFalse("DB_STANDARD_CONFORMING_STRINGS"),
 	}
 
 	return cfg

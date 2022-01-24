@@ -54,5 +54,11 @@ func connectionConfig(cfg *config.Config) (*pgxpool.Config, error) {
 
 	config, err := pgxpool.ParseConfig(connStr)
 	config.ConnConfig.PreferSimpleProtocol = true
+	if cfg.StandardConformingStrings {
+		config.ConnString.RuntimeParams = map[string]string{
+			"standard_conforming_strings": "on",
+		}
+	}
+
 	return config, errors.Wrap(err, "DB failed to parse config")
 }
