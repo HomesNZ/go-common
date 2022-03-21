@@ -2,11 +2,15 @@ package sqs
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
-//type MessageHandler func(ctx context.Context, message sqs.SNSMessage) (bool, error)
+type Event struct {
+	Type    string    `json:"type"`
+	Created time.Time `json:"created"`
+}
 
 type Router struct {
 	routes map[string]SNSMessageHandler
