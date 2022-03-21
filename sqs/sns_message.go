@@ -11,6 +11,7 @@ import (
 // message to an SNS message format before sending to the handler.
 
 type SNSMessageHandler func(message SNSMessage) (bool, error)
+type SNSMessagesHandler func(messages []SNSMessage) (bool, error)
 
 // SNSMessage is a data struct matching the output from a message pushed through
 // SQS from SNS.

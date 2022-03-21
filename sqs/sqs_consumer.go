@@ -70,7 +70,12 @@ func (c *consumer) Start() error {
 	c.started = true
 
 	go c.receive()
-	go c.handleResponses()
+	if c.batchSize >  0 {
+		go c.handleBatchResponse()
+	} else {
+		go c.handleResponses()
+	}
+
 	contextLogger.Info("now polling SQS queue:", c.config.QueueName())
 	return nil
 }
@@ -88,9 +93,13 @@ func (c consumer) receive() {
 			return
 		default:
 			contextLogger.Debug("waiting for request...")
+			batchSize := 1
+			if c.batchSize != 0 {
+				batchSize = c.batchSize
+			}
 			params := &sqs.ReceiveMessageInput{
 				QueueUrl:            aws.String(c.queueUrl),
-				MaxNumberOfMessages: aws.Int64(int64(c.batchSize)),
+				MaxNumberOfMessages: aws.Int64(int64(batchSize)),
 				VisibilityTimeout:   aws.Int64(defaultVisibilityTimeout),
 				WaitTimeSeconds:     aws.Int64(defaultWaitSeconds),
 				MessageAttributeNames: aws.StringSlice([]string{
@@ -122,6 +131,18 @@ func (c consumer) handleResponses() {
 				wg.Wait()
 			}
 		}
+		wg.Wait()
+	}
+}
+
+func (c consumer) handleBatchResponse() {
+	wg := sync.WaitGroup{}
+	for resp := range c.responseChan {
+		wg.Add(1)
+		go func(messages []*sqs.Message) {
+			defer wg.Done()
+			c.handleMessages(messages)
+		}(resp.Messages)
 		wg.Wait()
 	}
 }
@@ -178,6 +199,63 @@ func (c consumer) handleMessage(message sqs.Message) {
 		return
 	}
 	logger.Debug("message deleted")
+}
+
+func (c consumer) handleMessages(messages []*sqs.Message) {
+	ids := make([]string, 0, len(messages))
+	for _, message := range messages {
+		ids = append(ids, *message.MessageId)
+	}
+
+	logger := contextLogger.WithFields(logrus.Fields{
+		"message_ids": ids,
+	})
+	logger.Debug("handling message...")
+
+	if c.handler == nil {
+		// No handler supplied, don't handle!
+		logger.Debug("no message handler supplied")
+		return
+	}
+
+	switch handler := c.handler.(type) {
+	case SNSMessagesHandler:
+		msgs := make([]SNSMessage, len(messages))
+		for _, message := range messages {
+			snsMessage, err := newSNSMessage(message)
+			if err != nil {
+				logger.WithError(err).Error(err)
+				return
+			}
+			msgs = append(msgs, snsMessage)
+		}
+
+		if ok, err := handler(msgs); !ok {
+			// Failed to handle message, do nothing. It's the responsibility of the
+			// handler to communicate the failure via logs/bugsnag etc.
+			logger.Debug("failed to handle message")
+			logger.WithError(err).Error(err)
+			return
+		}
+	default:
+		panic(fmt.Sprintf("Unknown handler: %v", c.handler))
+	}
+
+	logger.Debug("message handled, deleting...")
+	// message was handled successfully, delete the message from SQS
+
+	for _, message := range messages {
+		params := &sqs.DeleteMessageInput{
+			QueueUrl:      aws.String(c.queueUrl),
+			ReceiptHandle: message.ReceiptHandle,
+		}
+		_, err := c.conn.DeleteMessage(params)
+		if err != nil {
+			logger.Error(err)
+		} else {
+			logger.Debug("message deleted successfully")
+		}
+	}
 }
 
 // Stop sends true to the doneChan, which stops the long polling process. Has to
