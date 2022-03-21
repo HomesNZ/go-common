@@ -5,6 +5,7 @@
 package mock_s3
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -35,46 +36,45 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockService) Delete(key string) (string, error) {
+func (m *MockService) Delete(ctx context.Context, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", key)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Delete", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockServiceMockRecorder) Delete(key interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Delete(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockService)(nil).Delete), key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockService)(nil).Delete), ctx, key)
 }
 
 // Download mocks base method.
-func (m *MockService) Download(key string) ([]byte, error) {
+func (m *MockService) Download(ctx context.Context, key string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Download", key)
+	ret := m.ctrl.Call(m, "Download", ctx, key)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Download indicates an expected call of Download.
-func (mr *MockServiceMockRecorder) Download(key interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Download(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockService)(nil).Download), key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockService)(nil).Download), ctx, key)
 }
 
 // Upload mocks base method.
-func (m *MockService) Upload(key string, b []byte, expiry time.Time, contentType string) (string, error) {
+func (m *MockService) Upload(ctx context.Context, key string, b []byte, expiry time.Time, contentType string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Upload", key, b, expiry, contentType)
+	ret := m.ctrl.Call(m, "Upload", ctx, key, b, expiry, contentType)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Upload indicates an expected call of Upload.
-func (mr *MockServiceMockRecorder) Upload(key, b, expiry, contentType interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Upload(ctx, key, b, expiry, contentType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockService)(nil).Upload), key, b, expiry, contentType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockService)(nil).Upload), ctx, key, b, expiry, contentType)
 }

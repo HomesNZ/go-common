@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/HomesNZ/go-common/env"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 // ACL is policy for S3 assets.
@@ -12,7 +13,7 @@ import (
 // CloudfrontURL is CDN url
 type Config struct {
 	BucketName      string
-	ACL             string
+	ACL             types.ObjectCannedACL
 	Region          string
 	Endpoint        string
 	CloudfrontURL   string
@@ -22,7 +23,7 @@ type Config struct {
 
 func NewFromEnv() *Config {
 	cfg := &Config{
-		ACL:             env.GetString("AWS_S3_ACL", "private"),
+		ACL:             ACL(env.GetString("AWS_S3_ACL", "private")),
 		Region:          env.GetString("AWS_S3_REGION", "ap-southeast-2"),
 		Endpoint:        env.GetString("AWS_S3_ENDPOINT", "s3-ap-southeast-2.amazonaws.com"),
 		BucketName:      env.GetString("AWS_S3_BUCKET", ""),
@@ -40,4 +41,23 @@ func (c *Config) Validate() error {
 		validation.Field(&c.SecretAccessKey, validation.Required, validation.Required.Error("AWS secret access key was not provided")),
 		validation.Field(&c.BucketName, validation.Required, validation.Required.Error("Bucket name was not provided")),
 	)
+}
+
+func ACL(val string) types.ObjectCannedACL {
+	switch val {
+	case "private":
+		return types.ObjectCannedACLPrivate
+	case "public-read":
+		return types.ObjectCannedACLPublicRead
+	case "authenticated-read":
+		return types.ObjectCannedACLAuthenticatedRead
+	case "aws-exec-read":
+		return types.ObjectCannedACLAwsExecRead
+	case "bucket-owner-read":
+		return types.ObjectCannedACLBucketOwnerRead
+	case "bucket-owner-full-control":
+		return types.ObjectCannedACLBucketOwnerFullControl
+	default:
+		return types.ObjectCannedACLPrivate
+	}
 }
