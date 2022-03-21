@@ -1,8 +1,8 @@
 package sqs
 
 import (
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
-type SQSMessage sqs.Message
+type SQSMessage types.Message
 type MessageHandler func(message SQSMessage) (bool, error)

@@ -1,14 +1,16 @@
 package sqs
 
 import (
+	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"sync"
 	"time"
 
 	"github.com/HomesNZ/go-common/sqs/config"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -26,15 +28,15 @@ const (
 )
 
 type Consumer interface {
-	Start() error
-	BatchSize(size int) error
+	Start(ctx context.Context) error
+	BatchSize(size int32) error
 	WaitForCompletion(b bool)
 	Stop() error
 }
 
 type consumer struct {
-	config            config.Config
-	conn              *sqs.SQS
+	config            *config.Config
+	conn              *sqs.Client
 	queueUrl          string
 	handler           interface{}
 	handlers          map[string]SNSMessageHandler
@@ -42,10 +44,10 @@ type consumer struct {
 	doneChan          chan bool
 	started           bool
 	waitForCompletion bool
-	batchSize         int
+	batchSize         int32
 }
 
-func (c *consumer) BatchSize(size int) error {
+func (c *consumer) BatchSize(size int32) error {
 	if c.started {
 		return errors.New("BatchSize() called while consumer running")
 	}
@@ -60,7 +62,7 @@ func (c *consumer) WaitForCompletion(b bool) {
 	c.waitForCompletion = b
 }
 
-func (c *consumer) Start() error {
+func (c *consumer) Start(ctx context.Context) error {
 	if c.started {
 		return errors.New("can't start sqs consumer: already started")
 	}
@@ -69,13 +71,13 @@ func (c *consumer) Start() error {
 	c.doneChan = make(chan bool)
 	c.started = true
 
-	go c.receive()
-	go c.handleResponses()
-	contextLogger.Info("now polling SQS queue:", c.config.QueueName())
+	go c.receive(ctx)
+	go c.handleResponses(ctx)
+	contextLogger.Info("now polling SQS queue:", c.config.QueueName)
 	return nil
 }
 
-func (c consumer) receive() {
+func (c consumer) receive(ctx context.Context) {
 	for {
 		select {
 		case <-c.doneChan:
@@ -90,14 +92,14 @@ func (c consumer) receive() {
 			contextLogger.Debug("waiting for request...")
 			params := &sqs.ReceiveMessageInput{
 				QueueUrl:            aws.String(c.queueUrl),
-				MaxNumberOfMessages: aws.Int64(int64(c.batchSize)),
-				VisibilityTimeout:   aws.Int64(defaultVisibilityTimeout),
-				WaitTimeSeconds:     aws.Int64(defaultWaitSeconds),
-				MessageAttributeNames: aws.StringSlice([]string{
+				MaxNumberOfMessages: c.batchSize,
+				VisibilityTimeout:   defaultVisibilityTimeout,
+				WaitTimeSeconds:     defaultWaitSeconds,
+				MessageAttributeNames: []string{
 					"All",
-				}),
+				},
 			}
-			resp, err := c.conn.ReceiveMessage(params)
+			resp, err := c.conn.ReceiveMessage(ctx, params)
 			if err != nil {
 				contextLogger.WithError(err).Errorf("Error occurred while receiving from SQS queue (%s), sleeping for %d seconds", err.Error(), secondsToSleepOnError)
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
@@ -109,14 +111,14 @@ func (c consumer) receive() {
 	}
 }
 
-func (c consumer) handleResponses() {
+func (c consumer) handleResponses(ctx context.Context) {
 	for responce := range c.responseChan {
 		wg := sync.WaitGroup{}
 		for _, message := range responce.Messages {
 			wg.Add(1)
-			go func(message *sqs.Message) {
+			go func(message types.Message) {
 				defer wg.Done()
-				c.handleMessage(*message)
+				c.handleMessage(ctx, message)
 			}(message)
 			if c.waitForCompletion {
 				wg.Wait()
@@ -126,7 +128,7 @@ func (c consumer) handleResponses() {
 	}
 }
 
-func (c consumer) handleMessage(message sqs.Message) {
+func (c consumer) handleMessage(ctx context.Context, message types.Message) {
 	logger := contextLogger.WithFields(logrus.Fields{
 		"receipt_handle": message.ReceiptHandle,
 		"message_id":     *message.MessageId,
@@ -172,7 +174,7 @@ func (c consumer) handleMessage(message sqs.Message) {
 		QueueUrl:      aws.String(c.queueUrl),
 		ReceiptHandle: message.ReceiptHandle,
 	}
-	_, err := c.conn.DeleteMessage(params)
+	_, err := c.conn.DeleteMessage(ctx, params)
 	if err != nil {
 		logger.Error(err)
 		return

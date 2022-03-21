@@ -3,8 +3,7 @@ package sqs
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 // SNSMessageHandler is the same as MessageHandler except it converts an SQS
@@ -25,10 +24,10 @@ type SNSMessage struct {
 	SigningCertURL   string
 	UnsubscribeURL   string
 
-	sqsMessage *sqs.Message
+	sqsMessage *types.Message
 }
 
-func newSNSMessage(sqsMessage *sqs.Message) (SNSMessage, error) {
+func newSNSMessage(sqsMessage *types.Message) (SNSMessage, error) {
 	m := SNSMessage{
 		sqsMessage: sqsMessage,
 	}
