@@ -44,5 +44,6 @@ func newConsumer(ctx context.Context, config *config.Config, log *logrus.Entry, 
 		config:   config,
 		queueUrl: resultURL.QueueUrl,
 		handler:  handler,
+		log:      log,
 	}, nil
 }
