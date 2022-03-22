@@ -2,11 +2,12 @@ package sqs
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/HomesNZ/go-common/sqs/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/sirupsen/logrus"
-	"sync"
-	"time"
 )
 
 const (
@@ -15,7 +16,8 @@ const (
 	maxRetries            = 5
 )
 
-type MessageHandler func(ctx context.Context, message []types.Message) error
+type MessageHandler func(ctx context.Context, message []Message) error
+type Message types.Message
 
 type Consumer interface {
 	Start(ctx context.Context)
@@ -85,7 +87,12 @@ func (c consumer) async(ctx context.Context, msgs []types.Message) {
 }
 
 func (c consumer) consume(ctx context.Context, msgs []types.Message) {
-	if err := c.handler(ctx, msgs); err != nil {
+	messages := make([]Message, 0, len(msgs))
+	for _, m := range msgs {
+		msg := Message(m)
+		messages = append(messages, msg)
+	}
+	if err := c.handler(ctx, messages); err != nil {
 		// Failed to handle message, do nothing. It's the responsibility of the
 		// handler to communicate the failure via logs/bugsnag etc.
 		c.log.Debug("failed to handle message")
