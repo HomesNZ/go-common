@@ -17,7 +17,6 @@ const (
 )
 
 type MessageHandler func(ctx context.Context, message []Message) error
-type Message types.Message
 
 type Consumer interface {
 	Start(ctx context.Context)
@@ -89,7 +88,10 @@ func (c consumer) async(ctx context.Context, msgs []types.Message) {
 func (c consumer) consume(ctx context.Context, msgs []types.Message) {
 	messages := make([]Message, 0, len(msgs))
 	for _, m := range msgs {
-		msg := Message(m)
+		msg, err := newMessage(m)
+		if err != nil {
+			c.log.WithError(err).Error("failed to convert message")
+		}
 		messages = append(messages, msg)
 	}
 	if err := c.handler(ctx, messages); err != nil {
