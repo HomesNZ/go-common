@@ -6,23 +6,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/sirupsen/logrus"
+	"time"
 )
 
-func NewFromEnv(ctx context.Context, handlers map[string]SNSMessageHandler) (Consumer, error) {
+func NewFromEnv(ctx context.Context, log *logrus.Entry, handler MessageHandler) (Consumer, error) {
 	config, err := config.NewFromEnv()
 	if err != nil {
 		return nil, err
 	}
 
-	return newConsumer(ctx, config, handlers)
-}
-
-func New(ctx context.Context, config *config.Config, handlers map[string]SNSMessageHandler) (Consumer, error) {
-	return newConsumer(ctx, config, handlers)
+	return newConsumer(ctx, config, log, handler)
 }
 
 // New returns a pointer to a fresh Consumer instance.
-func newConsumer(ctx context.Context, config *config.Config, handlers map[string]SNSMessageHandler) (Consumer, error) {
+func newConsumer(ctx context.Context, config *config.Config, log *logrus.Entry, handler MessageHandler) (Consumer, error) {
 	s := sqs.NewFromConfig(aws.Config{
 		Region:           config.Region,
 		Credentials:      credentials.NewStaticCredentialsProvider(config.AccessKeyID, config.SecretAccessKey, ""),
@@ -33,24 +31,18 @@ func newConsumer(ctx context.Context, config *config.Config, handlers map[string
 		QueueName: aws.String(config.QueueName),
 	})
 	if err != nil {
-		contextLogger.Error("Can't get the SQS queue")
 		return nil, err
 	}
 
-	router := NewRouter()
-	for event, h := range handlers {
-		router.AddRoute(event, h)
-	}
-
-	handler := Handler{
-		Router: router,
+	sqsClient := &SQS{
+		client:  s,
+		timeout: time.Second * 5,
 	}
 
 	return &consumer{
-		conn:      s,
-		config:    config,
-		queueUrl:  *resultURL.QueueUrl,
-		handler:   SNSMessageHandler(handler.HandleMessage),
-		batchSize: maxMessages,
+		client:   sqsClient,
+		config:   config,
+		queueUrl: resultURL.QueueUrl,
+		handler:  handler,
 	}, nil
 }

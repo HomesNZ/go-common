@@ -9,6 +9,8 @@ type Config struct {
 	AccessKeyID     string // - is aws access key id
 	SecretAccessKey string // - is aws secret access key
 	Region          string // - is aws SQS region
+	MaxMsg          int32
+	MaxWorker       int
 }
 
 func (c Config) Validate() error {
