@@ -3,8 +3,8 @@ package bugsnag
 import (
 	"github.com/HomesNZ/go-common/env"
 	"github.com/HomesNZ/go-common/version"
+	bugsnag "github.com/bugsnag/bugsnag-go/v2"
 	"github.com/sirupsen/logrus"
-	"github.com/bugsnag/bugsnag-go"
 )
 
 // InitBugsnag initializes bugsnag to capture panics if BUGSNAG_API_KEY is defined. Note that because bugsnag spawns a
