@@ -5,10 +5,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/HomesNZ/elastic"
 	"github.com/HomesNZ/go-common/env"
 	"github.com/sirupsen/logrus"
-
-	"github.com/HomesNZ/elastic"
+	awsauth "github.com/smartystreets/go-aws-auth"
 )
 
 var (
