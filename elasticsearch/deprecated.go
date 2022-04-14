@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/HomesNZ/elastic"
-	"github.com/smartystreets/go-aws-auth"
 )
 
 var (
@@ -32,6 +31,11 @@ func initConn() {
 		elastic.SetHealthcheck(env.GetBool("ELASTICSEARCH_HEALTH_CHECK", true)),
 		elastic.SetSniff(env.GetBool("ELASTICSEARCH_SNIFF", false)), // causes issues within AWS, so off by default
 	}
+
+	if retries := env.GetInt("ELASTICSEARCH_MAX_RETRIES", 0); retries > 0 {
+		options = append(options, elastic.SetMaxRetries(retries))
+	}
+
 	if awsAuth() {
 		options = append(options, elastic.SetPrepareRequest(func(req *http.Request) {
 			awsauth.Sign(req)
