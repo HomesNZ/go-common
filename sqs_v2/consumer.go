@@ -66,7 +66,7 @@ func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
 				continue
 			}
-
+			c.log.Debugf("pulled %d messages", len(msgs))
 			if len(msgs) == 0 {
 				continue
 			}
