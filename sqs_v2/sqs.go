@@ -19,10 +19,6 @@ func (s SQS) Receive(ctx context.Context, queueURL string, waitTimeSeconds int32
 	if maxMsg < 1 || maxMsg > 10 {
 		return nil, errors.New("msgMax valid values: 1 to 10")
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(waitTimeSeconds+5))
-	defer cancel()
-
 	res, err := s.client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 		QueueUrl:              aws.String(queueURL),
 		MaxNumberOfMessages:   maxMsg,
