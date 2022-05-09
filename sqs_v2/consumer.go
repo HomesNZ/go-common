@@ -2,6 +2,8 @@ package sqs_v2
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -17,6 +19,7 @@ const (
 )
 
 type MessageHandler func(ctx context.Context, message []Message) error
+type Notifier func(err error, rawData ...interface{})
 
 type Consumer interface {
 	Start(ctx context.Context)
@@ -30,6 +33,7 @@ type consumer struct {
 	handler  MessageHandler
 	doneChan chan bool
 	queueUrl *string
+	notifier Notifier
 }
 
 func (c *consumer) Start(ctx context.Context) {
@@ -49,6 +53,10 @@ func (c consumer) Stop() {
 	c.doneChan <- true
 }
 
+func (c *consumer) SetNotifier(f Notifier) {
+	c.notifier = f
+}
+
 func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
@@ -62,7 +70,11 @@ func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 		default:
 			msgs, err := c.client.Receive(ctx, c.config.QueueName, defaultWaitSeconds, c.config.MaxMsg)
 			if err != nil {
-				c.log.WithError(err).Errorf("Error occurred while receiving from SQS queue (%s), sleeping for %d seconds", err.Error(), secondsToSleepOnError)
+				msg := fmt.Sprintf("Error occurred while receiving from SQS queue (%s), sleeping for %d seconds", err.Error(), secondsToSleepOnError)
+				if c.notifier != nil {
+					c.notifier(errors.New(msg))
+				}
+				c.log.WithError(err).Error(msg)
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
 				continue
 			}
