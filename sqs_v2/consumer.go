@@ -24,6 +24,7 @@ type Notifier func(err error, rawData ...interface{})
 type Consumer interface {
 	Start(ctx context.Context)
 	Stop()
+	SetNotifier(f Notifier)
 }
 
 type consumer struct {
