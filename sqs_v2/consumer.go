@@ -65,9 +65,9 @@ func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 			close(c.doneChan)
 			c.log.Info("stopped polling SQS queue:", c.config.QueueName)
 			return
-		case <-ctx.Done():
-			c.log.Info("stopped polling SQS queue:", c.config.QueueName)
-			return
+		//case <-ctx.Done():
+		//	c.log.Info("stopped polling SQS queue:", c.config.QueueName)
+		//	return
 		default:
 			msgs, err := c.client.Receive(ctx, c.config.QueueName, defaultWaitSeconds, c.config.MaxMsg)
 			if err != nil {
