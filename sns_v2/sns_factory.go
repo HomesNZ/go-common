@@ -22,5 +22,5 @@ func NewFromEnv(ctx context.Context) (Service, error) {
 
 	client := sns.NewFromConfig(cfg)
 
-	return &service{conn: client, config: config}, nil
+	return &service{conn: client, config: config, topics: make(map[string]TopicArn)}, nil
 }
