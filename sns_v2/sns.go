@@ -50,7 +50,7 @@ func (s *service) Send(ctx context.Context, eventType string, message interface{
 	return nil
 }
 
-func (s *service) name(name string) string {
+func (s *service) name(name string) *string {
 	n := name + "_" + s.config.Env
 	return &n
 }
