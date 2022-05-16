@@ -3,8 +3,9 @@ package sns_v2
 import (
 	"context"
 	"encoding/json"
-	"github.com/HomesNZ/go-common/sns_v2/config"
 	"sync"
+
+	"github.com/HomesNZ/go-common/sns_v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
@@ -50,7 +51,8 @@ func (s *service) Send(ctx context.Context, eventType string, message interface{
 }
 
 func (s *service) name(name string) string {
-	return name + "_" + s.config.Env
+	n := name + "_" + s.config.Env
+	return &n
 }
 
 func (s *service) topic(ctx context.Context, name string) (*string, error) {
@@ -59,7 +61,7 @@ func (s *service) topic(ctx context.Context, name string) (*string, error) {
 	}
 
 	input := &sns.CreateTopicInput{
-		Name: &name,
+		Name: s.name(name),
 	}
 	output, err := s.conn.CreateTopic(ctx, input)
 	if err != nil {
