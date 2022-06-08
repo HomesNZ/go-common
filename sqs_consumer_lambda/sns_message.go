@@ -7,25 +7,9 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-// copy from AWS sdk
 type MessageAttributeValue struct {
-
-	// Amazon SNS supports the following logical data types: String, String.Array,
-	// Number, and Binary. For more information, see Message Attribute Data Types
-	// (https://docs.aws.amazon.com/sns/latest/dg/SNSMessageAttributes.html#SNSMessageAttributes.DataTypes).
-	//
-	// This member is required.
-	DataType *string
-
-	// Binary type attributes can store any binary data, for example, compressed data,
-	// encrypted data, or images.
-	BinaryValue []byte
-
-	// Strings are Unicode with UTF8 binary encoding. For a list of code values, see
-	// ASCII Printable Characters
-	// (https://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters).
-	StringValue *string
-	// contains filtered or unexported fields
+	Type  string
+	Value string
 }
 
 // SNSMessageHandler is the same as MessageHandler except it converts an SQS
