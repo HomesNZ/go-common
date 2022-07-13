@@ -20,9 +20,9 @@ type Cache interface {
 	GetString(key string) (string, error)
 	GetBool(key string) (bool, error)
 	Exists(key string) (bool, error)
-	Set(key, val interface{}) error
-	SetExpiry(key, val interface{}, expireTime int) error
-	SetExpiryTime(key, val interface{}, expireTime time.Time) error
+	Set(key string, val interface{}) error
+	SetExpiry(key string, val interface{}, expireTime int) error
+	SetExpiryTime(key string, val interface{}, expireTime time.Time) error
 	Subscribe(subscription string, handleResponse func(interface{}))
 	IsProcessed(lockable Lockable) (bool, error)
 	MarkProcessed(lockable Lockable) error
