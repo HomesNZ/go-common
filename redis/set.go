@@ -5,7 +5,7 @@ import (
 )
 
 // Set adds a new key value pair to the redis cache.
-func (c cache) Set(key, val string) error {
+func (c cache) Set(key string, val interface{}) error {
 	conn := c.Conn()
 	defer conn.Close()
 
@@ -18,7 +18,7 @@ func (c cache) Set(key, val string) error {
 }
 
 // SetExpiry adds a new key value pair to the redis cache with expire time in seconds
-func (c cache) SetExpiry(key, val string, expireTime int) error {
+func (c cache) SetExpiry(key string, val interface{}, expireTime int) error {
 	conn := c.Conn()
 	defer conn.Close()
 
@@ -31,7 +31,7 @@ func (c cache) SetExpiry(key, val string, expireTime int) error {
 }
 
 // SetExpiryTime adds a new key value pair to the redis cache with expire time in time.Time
-func (c cache) SetExpiryTime(key, val string, expireTime time.Time) error {
+func (c cache) SetExpiryTime(key string, val interface{}, expireTime time.Time) error {
 	conn := c.Conn()
 	defer conn.Close()
 	// convert the expiry time into the duration until expiry to conform to redis expectations
@@ -44,4 +44,3 @@ func (c cache) SetExpiryTime(key, val string, expireTime time.Time) error {
 
 	return nil
 }
-

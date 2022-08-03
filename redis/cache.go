@@ -17,16 +17,18 @@ var (
 type Cache interface {
 	Delete(key string) (string, error)
 	Get(key string) (string, error)
+	GetString(key string) (string, error)
+	GetBool(key string) (bool, error)
 	Exists(key string) (bool, error)
-	Set(key, val string) error
-	SetExpiry(key, val string, expireTime int) error
-	SetExpiryTime(key, val string, expireTime time.Time) error
+	Set(key string, val interface{}) error
+	SetExpiry(key string, val interface{}, expireTime int) error
+	SetExpiryTime(key string, val interface{}, expireTime time.Time) error
 	Subscribe(subscription string, handleResponse func(interface{}))
 	IsProcessed(lockable Lockable) (bool, error)
 	MarkProcessed(lockable Lockable) error
 	ListPush(listName string, val ...string) error // Insert all the specified values at the head of the list stored at key. If key does not exist, it is created as empty list before performing the push operations
 	ListLen(listName string) (int, error)          // Returns the length of the list stored at key.
-	ListPop(listName string) (string, error)     // Removes and returns the top element of the list stored at key.
+	ListPop(listName string) (string, error)       // Removes and returns the top element of the list stored at key.
 	ListValues(listName string) ([]string, error)  // Returns the elements of the list stored at key.
 }
 
