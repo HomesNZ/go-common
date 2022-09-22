@@ -10,7 +10,7 @@ import (
 )
 
 type PresignService interface {
-	SignedPutObjectUrl(ctx context.Context, bucket, key string) (string, error)
+	SignedPutObjectUrl(ctx context.Context, bucket, key, contentType string) (string, error)
 }
 
 // presignS3 is a concrete implementation of presigned s3 client
@@ -20,10 +20,11 @@ type presignS3 struct {
 }
 
 // SignedPutObjectUrl is to get a presigned URL for uploading an object
-func (s presignS3) SignedPutObjectUrl(ctx context.Context, bucket, key string) (string, error) {
+func (s presignS3) SignedPutObjectUrl(ctx context.Context, bucket, key, contentType string) (string, error) {
 	params := &awsS3.PutObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(key),
+		ContentType: aws.String(contentType),
 	}
 
 	result, err := s.presignClient.PresignPutObject(ctx, params)
