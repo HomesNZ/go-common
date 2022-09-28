@@ -35,16 +35,16 @@ func (m *MockPresignService) EXPECT() *MockPresignServiceMockRecorder {
 }
 
 // SignedPutObjectUrl mocks base method.
-func (m *MockPresignService) SignedPutObjectUrl(ctx context.Context, bucket, key string) (string, error) {
+func (m *MockPresignService) SignedPutObjectUrl(ctx context.Context, bucket, key, contentType string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignedPutObjectUrl", ctx, bucket, key)
+	ret := m.ctrl.Call(m, "SignedPutObjectUrl", ctx, bucket, key, contentType)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SignedPutObjectUrl indicates an expected call of SignedPutObjectUrl.
-func (mr *MockPresignServiceMockRecorder) SignedPutObjectUrl(ctx, bucket, key interface{}) *gomock.Call {
+func (mr *MockPresignServiceMockRecorder) SignedPutObjectUrl(ctx, bucket, key, contentType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignedPutObjectUrl", reflect.TypeOf((*MockPresignService)(nil).SignedPutObjectUrl), ctx, bucket, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignedPutObjectUrl", reflect.TypeOf((*MockPresignService)(nil).SignedPutObjectUrl), ctx, bucket, key, contentType)
 }
