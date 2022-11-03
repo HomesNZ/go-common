@@ -12,9 +12,12 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go v1.44.129 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/sha1sum/aws_signing_client v0.0.0-20200229211254-f7815c59d5c1 // indirect
 	github.com/smartystreets/assertions v1.13.0 // indirect
 	github.com/smartystreets/gunit v1.4.3 // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
