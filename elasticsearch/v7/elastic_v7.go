@@ -29,7 +29,7 @@ func Conn() *elastic.Client {
 	urls := strings.Split(env.MustGetString("ELASTICSEARCH_URLS"), ";")
 	client, err := elastic.NewClient(
 		elastic.SetURL(urls...),
-		elastic.SetMaxRetries(2),
+		elastic.SetMaxRetries(10),
 		elastic.SetHttpClient(awsClient),
 		// https://github.com/olivere/elastic/wiki/Using-with-AWS-Elasticsearch-Service
 		elastic.SetSniff(false),
