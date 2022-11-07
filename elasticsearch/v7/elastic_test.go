@@ -21,8 +21,8 @@ func TestConn(t *testing.T) {
 
 // User is a very simple struct
 type User struct {
-	User  string            `json:"user"`
-	Point *elastic.GeoPoint `json:"point"`
+	Profile string            `json:"profile"`
+	Point   *elastic.GeoPoint `json:"point"`
 }
 
 const mapping = `
@@ -31,22 +31,21 @@ const mapping = `
 		"number_of_shards": 1,
 		"number_of_replicas": 0
 	},
-	"mappings":{
-		"user":{
-			"properties":{
-				"user":{
-					"type":"keyword"
-				},
-				"location":{
-					"type":"geo_point"
-				}
+	"mappings": {
+		"properties": {
+			"profile": {
+				"type": "keyword"
+			},
+			"location": {
+				"type":"geo_point"
 			}
 		}
 	}
 }`
 
 func TestPerf(t *testing.T) {
-	t.Skip()
+	// docs: https://pkg.go.dev/github.com/olivere/elastic/v7#pkg-overview
+	// t.Skip()
 	var ctx = context.Background()
 	client := Conn()
 
@@ -61,22 +60,23 @@ func TestPerf(t *testing.T) {
 		}
 		if !createIndex.Acknowledged {
 			// Not acknowledged
-			panic(err)
+			panic("create not ack!")
 		}
 	}
-	for i := 0; i < 20; i++ {
-		// todo add a point here
-		u := User{User: "olivere", Point: &elastic.GeoPoint{Lat: rand.Float64(), Lon: rand.Float64()}}
+	for i := 0; i < 10; i++ {
+		u := User{
+			Profile: "olivere createIndex, err := client.CreateIndex(users).BodyString(mapping).Do(ctx) createIndex, err := client.CreateIndex(users).BodyString(mapping).Do(ctx) Flushing a data stream or index is the process of making sure that any data that is currently only stored in the transaction log is also permanently stored in the Lucene index. When restarting, Elasticsearch replays any unflushed operations from the transaction log in to the Lucene index to bring it back into the state that it was in before the restart. Elasticsearch automatically triggers flushes as needed, using heuristics that trade off the size of the unflushed transaction log against the cost of performing each flush olivere createIndex, err := client.CreateIndex(users).BodyString(mapping).Do(ctx) createIndex, err := client.CreateIndex(users).BodyString(mapping).Do(ctx) Flushing a data stream or index is the process of making sure that any data that is currently only stored in the transaction log is also permanently stored in the Lucene index. When restarting, Elasticsearch replays any unflushed operations from the transaction log in to the Lucene index to bring it back into the state that it was in before the restart. Elasticsearch automatically triggers flushes as needed, using heuristics that trade off the size of the unflushed transaction log against the cost of performing each flush",
+			Point:   &elastic.GeoPoint{Lat: rand.Float64(), Lon: rand.Float64()},
+		}
 		put1, err := client.Index().
 			Index("users").
-			Type("user").
-			// Id("1").
+			Id(fmt.Sprintf("%d", i+1)).
 			BodyJson(u).
 			Do(ctx)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Indexed tweet %s to index %s, type %s\n", put1.Id, put1.Index, put1.Type)
+		fmt.Printf("Indexed user %s to index %s, type %s\n", put1.Id, put1.Index, put1.Type)
 	}
 	_, err = client.DeleteIndex("users").Do(ctx)
 	if err != nil {
