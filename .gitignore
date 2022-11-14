@@ -1,6 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .history
 
+.vscode
 .DS_Store
 
 */vendor/*
