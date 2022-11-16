@@ -8,7 +8,6 @@ import (
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/pkg/errors"
 	"github.com/sha1sum/aws_signing_client"
-	"github.com/sirupsen/logrus"
 
 	elastic "github.com/olivere/elastic/v7"
 )
@@ -20,7 +19,6 @@ import (
 //		+ AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY
 //	    + (optional) AWS_REGION
 func Conn() (*elastic.Client, error) {
-	log := logrus.WithField("package", "elasticsearch")
 	signer := v4.NewSigner(credentials.NewEnvCredentials())
 	region := env.GetString("AWS_REGION", "ap-southeast-2")
 	awsClient, err := aws_signing_client.New(signer, nil, "es", region)
@@ -45,6 +43,5 @@ func Conn() (*elastic.Client, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating client")
 	}
-	log.Infoln("using olivere/elastic/v7", urls)
 	return client, nil
 }
