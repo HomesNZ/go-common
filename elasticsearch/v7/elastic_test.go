@@ -11,7 +11,10 @@ import (
 
 func TestConn(t *testing.T) {
 	var ctx = context.Background()
-	conn := Conn()
+	conn, err := Conn()
+	if err != nil {
+		t.Fatal("failed to initialize", err)
+	}
 	info, err := conn.NodesInfo().Do(ctx)
 	if err != nil {
 		t.Fatal("failed to connect", err)
@@ -47,7 +50,10 @@ func TestPerf(t *testing.T) {
 	// docs: https://pkg.go.dev/github.com/olivere/elastic/v7#pkg-overview
 	// t.Skip()
 	var ctx = context.Background()
-	client := Conn()
+	client, err := Conn()
+	if err != nil {
+		t.Fatal("failed to initialize", err)
+	}
 
 	exists, err := client.IndexExists("users").Do(ctx)
 	if err != nil {
