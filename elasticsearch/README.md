@@ -22,3 +22,5 @@ export ELASTICSEARCH_URLS="http://127.0.0.1:9200"
 
 go test ./...
 ```
+
+For usage example of .travis.yml see address-search repo
