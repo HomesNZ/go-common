@@ -1,28 +1,50 @@
 package bugsnag
 
 import (
-	"github.com/HomesNZ/go-common/env"
-	"github.com/HomesNZ/go-common/version"
+	"context"
+	"github.com/HomesNZ/go-common/bugsnag/config"
 	bugsnag "github.com/bugsnag/bugsnag-go/v2"
-	"github.com/sirupsen/logrus"
 )
 
-// InitBugsnag initializes bugsnag to capture panics if BUGSNAG_API_KEY is defined. Note that because bugsnag spawns a
-// new process, logs will show some initial duplicate entries.
-func InitBugsnag() {
-	apiKey := env.Get("BUGSNAG_API_KEY")
-
-	if apiKey != "" {
-		bugsnag.Configure(bugsnag.Configuration{
-			APIKey:       apiKey,
-			ReleaseStage: env.Env(),
-			AppVersion:   version.Version,
-		})
-		logrus.Info("Bugsnag configured to capture panics")
+func NewFromEnv() error {
+	cnf := config.NewFromEnv()
+	if err := cnf.Validate(); err != nil {
+		return err
 	}
+	bugsnag.Configure(bugsnag.Configuration{
+		APIKey:       cnf.APIKey,
+		ReleaseStage: cnf.Stage,
+	})
+
+	return nil
 }
 
-//Notify wraps the bugsnag.Notify call
-func Notify(err error, rawData ...interface{}) {
-	bugsnag.Notify(err, rawData)
+// Notify wraps the bugsnag.Notify call
+// Usage:
+// ctx := context.Background()
+// ctx = bugsnag.StartSession(ctx)
+// _, err := net.Listen("tcp", ":80")
+//
+// if err != nil {
+// bugsnag.Notify(err, ctx)
+// }
+func Notify(err error, rawData ...interface{}) error {
+	return bugsnag.Notify(err, rawData)
+}
+
+// StartSession wraps the bugsnag.StartSession call
+func StartSession(ctx context.Context) context.Context {
+	return bugsnag.StartSession(ctx)
+}
+
+// AutoNotify wraps the bugsnag.AutoNotify call
+// Usage:
+//
+//	 go func() {
+//	     ctx := bugsnag.StartSession(context.Background())
+//			defer bugsnag.AutoNotify(ctx)
+//	     // (possibly crashy code)
+//	 }()
+func AutoNotify(rawData ...interface{}) {
+	bugsnag.AutoNotify(rawData)
 }
