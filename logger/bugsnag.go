@@ -1,10 +1,10 @@
 package logger
 
 import (
-	"github.com/sirupsen/logrus"
-	bugsnag "github.com/bugsnag/bugsnag-go"
-	bugsnagErrors "github.com/bugsnag/bugsnag-go/errors"
+	bugsnag "github.com/bugsnag/bugsnag-go/v2"
+	bugsnagErrors "github.com/bugsnag/bugsnag-go/v2/errors"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type bugsnagHook struct{}
