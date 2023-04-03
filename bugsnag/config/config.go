@@ -18,7 +18,7 @@ func NewFromEnv() *Config {
 
 	cfg := &Config{
 		APIKey: env.GetString("BUGSNAG_API_KEY", ""),
-		Stage:  env.Env(),
+		Stage:  stage,
 	}
 
 	return cfg
