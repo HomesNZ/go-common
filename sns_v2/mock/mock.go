@@ -2,7 +2,7 @@
 // Source: sns.go
 
 // Package mock_sns_v2 is a generated GoMock package.
-package mock_sns_v2
+package mock
 
 import (
 	context "context"
