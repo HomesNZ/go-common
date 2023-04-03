@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/HomesNZ/go-common/bugsnag/config"
 	bugsnag "github.com/bugsnag/bugsnag-go/v2"
+	"net/http"
 )
 
 func NewFromEnv() error {
@@ -47,4 +48,8 @@ func StartSession(ctx context.Context) context.Context {
 //	 }()
 func AutoNotify(rawData ...interface{}) {
 	bugsnag.AutoNotify(rawData)
+}
+
+func AttachRequestData(ctx context.Context, r *http.Request) context.Context {
+	return bugsnag.AttachRequestData(ctx, r)
 }

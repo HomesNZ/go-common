@@ -11,6 +11,11 @@ type Config struct {
 }
 
 func NewFromEnv() *Config {
+	stage := env.Env()
+	if stage == "" {
+		stage = "staging"
+	}
+
 	cfg := &Config{
 		APIKey: env.GetString("BUGSNAG_API_KEY", ""),
 		Stage:  env.Env(),
