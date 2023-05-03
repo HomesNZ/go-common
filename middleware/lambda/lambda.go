@@ -39,12 +39,10 @@ func AddResponseHeaders(next LambdaHandler) LambdaHandler {
 			requestHeaderOriginEnv = requestHeaderOrigin
 		}
 
-		header := map[string]string{
+		res.Headers = map[string]string{
 			"Access-Control-Allow-Origin":      requestHeaderOriginEnv,
 			"Access-Control-Allow-Credentials": "true",
 		}
-
-		res.Headers = header
 		return res, nil
 	}
 }
