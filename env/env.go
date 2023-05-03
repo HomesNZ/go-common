@@ -2,13 +2,10 @@ package env
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"strconv"
 	"time"
-
-	log "github.com/sirupsen/logrus"
-
-	"github.com/joho/godotenv"
 )
 
 // ErrEnvVarNotFound is an error that is raised when an environment variable is missing.
@@ -79,7 +76,7 @@ func (e ErrUnableToParseDuration) Error() string {
 }
 
 // InitEnv initializes the environment variables.
-func InitEnv() {
+func InitEnv() error {
 	paths := []string{}
 
 	// Check to see if `.env` and `.env.default` exist before attempting to load environment vars from them.
@@ -94,19 +91,18 @@ func InitEnv() {
 	// necessary.
 	err := godotenv.Load(paths...)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-
-	log.Infof("Environment: %s", Env())
+	return nil
 }
 
 // InitEnvUnlessTest initializes the environment variables unless running in a test environment.
-func InitEnvUnlessTest(envs ...string) {
+func InitEnvUnlessTest(envs ...string) error {
 	if IsTest() {
-		return
+		return nil
 	}
 
-	InitEnv()
+	return InitEnv()
 }
 
 // Get simply returns the environment variable as a string, or an empty string when undefined.
@@ -141,15 +137,6 @@ func GetBoolOrFalse(key string) bool {
 	return val
 }
 
-// MustGetString returns the environment variable as a string, or logs a fatal error when undefined.
-func MustGetString(key string) string {
-	val := Get(key)
-	if val == "" {
-		log.Fatal(ErrEnvVarNotFound(key))
-	}
-	return val
-}
-
 // GetInt returns the environment variable as a int, or the default value when undefined.
 func GetInt(key string, defVal int) int {
 	raw := os.Getenv(key)
@@ -158,31 +145,7 @@ func GetInt(key string, defVal int) int {
 	}
 	val, err := strconv.Atoi(raw)
 	if err != nil {
-		log.Warn(
-			ErrUnableToParseIntWithDefault{
-				key:    key,
-				raw:    raw,
-				defVal: defVal,
-			},
-		)
-	}
-	return val
-}
-
-// MustGetInt returns the environment variable as a string, or logs a fatal error when undefined.
-func MustGetInt(key string) int {
-	raw := os.Getenv(key)
-	if raw == "" {
-		log.Fatal(ErrEnvVarNotFound(key))
-	}
-	val, err := strconv.Atoi(raw)
-	if err != nil {
-		log.Fatal(
-			ErrUnableToParseInt{
-				key: key,
-				raw: raw,
-			},
-		)
+		return defVal
 	}
 	return val
 }
@@ -193,34 +156,9 @@ func GetDuration(key string, defVal time.Duration) time.Duration {
 	if raw == "" {
 		return defVal
 	}
-
 	duration, err := time.ParseDuration(raw)
 	if err != nil {
-		log.Warn(
-			ErrUnableToParseDurationWithDefault{
-				key:    key,
-				raw:    raw,
-				defVal: defVal,
-			},
-		)
+		return defVal
 	}
-
-	return duration
-}
-
-// MustGetDuration returns the environment variable as a duration, or logs a fatal error when undefined.
-func MustGetDuration(key string) time.Duration {
-	raw := os.Getenv(key)
-
-	duration, err := time.ParseDuration(raw)
-	if err != nil {
-		log.Fatal(
-			ErrUnableToParseDuration{
-				key: key,
-				raw: raw,
-			},
-		)
-	}
-
 	return duration
 }
