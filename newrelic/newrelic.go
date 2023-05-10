@@ -3,33 +3,29 @@ package newrelic
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strings"
-	"sync"
-
 	"github.com/HomesNZ/go-common/env"
-	"github.com/sirupsen/logrus"
 	"github.com/gorilla/mux"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/pkg/errors"
+	"net/http"
+	"strings"
+	"time"
 )
 
 var (
-	app      newrelic.Application
-	initOnce = sync.Once{}
+	app newrelic.Application
 )
 
 type contextKey int
 
 var transactionKey contextKey = 0
 
-// InitNewRelic initializes the NewRelic configuration and panics if there is an
-// error.
-func InitNewRelic(appName string) {
+// InitNewRelic initializes the NewRelic configuration
+func InitNewRelic(appName string) error {
 	var err error
 	apiKey := env.GetString("NEWRELIC_API_KEY", "")
 	if apiKey == "" {
-		logrus.Info("Skipping New Relic initialization - NEWRELIC_API_KEY is empty")
-		return
+		return errors.New("NEWRELIC_API_KEY is required")
 	}
 	e := env.Env()
 	if e == "" {
@@ -38,9 +34,9 @@ func InitNewRelic(appName string) {
 	config := newrelic.NewConfig(fmt.Sprintf("%s-%s", appName, e), apiKey)
 	app, err = newrelic.NewApplication(config)
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to initialize New Relic")
 	}
-	logrus.Info("New Relic initialized successfully")
+	return err
 }
 
 // NewContext returns a new context with txn added as a value
@@ -55,13 +51,13 @@ func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
 }
 
 // StartTransaction begins a Transaction.
-// * The Transaction should only be used in a single goroutine.
-// * This method never returns nil.
-// * If an http.Request is provided then the Transaction is considered
-//   a web transaction.
-// * If an http.ResponseWriter is provided then the Transaction can be
-//   used in its place.  This allows instrumentation of the response
-//   code and response headers.
+//   - The Transaction should only be used in a single goroutine.
+//   - This method never returns nil.
+//   - If an http.Request is provided then the Transaction is considered
+//     a web transaction.
+//   - If an http.ResponseWriter is provided then the Transaction can be
+//     used in its place.  This allows instrumentation of the response
+//     code and response headers.
 func StartTransaction(name string, w http.ResponseWriter, r *http.Request) newrelic.Transaction {
 	return app.StartTransaction(name, w, r)
 }
@@ -82,6 +78,12 @@ func Middleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func Shutdown(duration time.Duration) {
+	if app != nil {
+		app.Shutdown(duration)
+	}
 }
 
 func routeName(r *http.Request) string {
