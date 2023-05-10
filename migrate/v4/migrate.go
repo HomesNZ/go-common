@@ -3,6 +3,7 @@ package migrate
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -103,11 +104,11 @@ func (m *migrator) MigrationTableExists(ctx context.Context) (bool, error) {
 func (m *migrator) CreateMigrationsTable(ctx context.Context) error {
 	_, err := m.DB.Exec(ctx, m.dbAdapter.CreateSchema())
 	if err != nil {
-		m.logger.Fatalf("Schema name was not provided for migrations: %v", err)
+		return fmt.Errorf("schema name was not provided for migrations: %+v", err)
 	}
 	_, err = m.DB.Exec(ctx, m.dbAdapter.CreateMigrationTableSql())
 	if err != nil {
-		m.logger.Fatalf("Error creating migrations table: %v", err)
+		return fmt.Errorf("error creating migrations table: %+v", err)
 	}
 
 	m.logger.Printf("Created migrations table: %s", migrationTableName)

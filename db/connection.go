@@ -73,17 +73,17 @@ func Conn(service string) *sql.DB {
 }
 
 // Open will initialize the database connection or raise an error.
-func (db *PG) Open(service string) {
+func (db *PG) Open(service string) error {
 	c, err := sql.Open("postgres", db.connectionString(service))
 	if err != nil {
-		log.WithError(err).Fatal(ErrUnableToParseDBConnection)
+		retrun ErrUnableToParseDBConnection
 	}
 
 	db.Conn = c
 
 	err = db.verifyConnection(service)
 	if err != nil {
-		log.WithError(err).Fatal(ErrUnableToConnectToDB)
+		retrun ErrUnableToConnectToDB
 	}
 }
 
@@ -123,7 +123,7 @@ func (db PG) connectionString(service string) string {
 		password,
 		env.GetString("DB_HOST", "localhost"),
 		env.GetString("DB_PORT", "5432"),
-		env.MustGetString("DB_NAME"),
+		env.GetString("DB_NAME", ""),
 		env.GetString("DB_SSL_MODE", "disable"),
 		service,
 	)

@@ -10,7 +10,7 @@ func connectionConfig(service string) pgx.ConnConfig {
 
 	config := pgx.ConnConfig{
 		Host:                 env.GetString("DB_HOST", "localhost"),
-		Database:             env.MustGetString("DB_NAME"),
+		Database:             env.GetString("DB_NAME", ""),
 		User:                 env.GetString("DB_USER", "postgres"),
 		Password:             env.GetString("DB_PASSWORD", ""),
 		Port:                 uint16(env.GetInt("DB_PORT", 5432)),

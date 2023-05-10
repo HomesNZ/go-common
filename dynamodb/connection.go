@@ -17,7 +17,7 @@ var (
 
 func initConn() {
 	conn = dynamo.New(session.New(), &aws.Config{
-		Region:      aws.String(env.MustGetString("DYNAMODB_REGION")),
+		Region:      aws.String(env.GetString("DYNAMODB_REGION", "")),
 		Credentials: credentials.NewEnvCredentials(),
 	})
 }

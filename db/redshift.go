@@ -11,8 +11,8 @@ import (
 	// SQL driver
 	_ "github.com/lib/pq"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/cenkalti/backoff"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -53,10 +53,10 @@ func ConnRedshift(service string) *sql.DB {
 }
 
 // Open will initialize the database connection or raise an error.
-func (db *RS) Open() {
+func (db *RS) Open() error {
 	c, err := sql.Open("postgres", db.connectionString())
 	if err != nil {
-		log.WithError(err).Fatal(ErrUnableToParseDBConnection)
+		return ErrUnableToParseDBConnection
 	}
 	if max := env.GetInt("REDSHIFT_MAX_IDLE_CONNS", 0); max > 0 {
 		c.SetMaxIdleConns(max)
@@ -69,7 +69,7 @@ func (db *RS) Open() {
 
 	err = db.verifyConnection()
 	if err != nil {
-		log.WithError(err).Fatal(ErrUnableToConnectToDB)
+		return ErrUnableToConnectToDB
 	}
 }
 
@@ -109,7 +109,7 @@ func (db RS) connectionString() string {
 		password,
 		env.GetString("REDSHIFT_HOST", "localhost"),
 		env.GetString("REDSHIFT_PORT", "5439"),
-		env.MustGetString("REDSHIFT_NAME"),
+		env.GetString("REDSHIFT_NAME", ""),
 		env.GetString("REDSHIFT_SSL_MODE", "disable"),
 	)
 
