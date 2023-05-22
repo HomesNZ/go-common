@@ -4,11 +4,11 @@ import (
 	"sync"
 
 	"github.com/HomesNZ/go-common/env"
-	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -29,7 +29,7 @@ func snsEnabled() bool {
 func initConn() {
 	if snsEnabled() {
 		conn = sns.New(session.New(), &aws.Config{
-			Region:      aws.String(env.MustGetString("SNS_REGION")),
+			Region:      aws.String(env.GetString("SNS_REGION", "")),
 			Credentials: credentials.NewEnvCredentials(),
 		})
 	}

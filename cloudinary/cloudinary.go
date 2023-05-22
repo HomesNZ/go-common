@@ -3,7 +3,6 @@ package cloudinary
 import (
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/HomesNZ/go-common/env"
@@ -15,31 +14,40 @@ var (
 	service *CDNService
 )
 
-func cloudinaryURI() string {
-	return fmt.Sprintf(
-		"cloudinary://%s:%s@%s",
-		env.MustGetString("CLOUDINARY_API_KEY"),
-		env.MustGetString("CLOUDINARY_API_SECRET"),
-		env.MustGetString("CLOUDINARY_CLOUD_NAME"),
-	)
-}
-
 // Service returns a Cloudinary Service singleton.
-func Service() *CDNService {
+func Service() (*CDNService, error) {
 	if service != nil {
-		return service
+		return service, nil
 	}
 
-	c, err := cloudinary.Dial(cloudinaryURI())
+	key := env.GetString("CLOUDINARY_API_KEY", "")
+	if key == "" {
+		return nil, fmt.Errorf("CLOUDINARY_API_KEY is not set")
+	}
+	secret := env.GetString("CLOUDINARY_API_SECRET", "")
+	if secret == "" {
+		return nil, fmt.Errorf("CLOUDINARY_API_SECRET is not set")
+	}
+	name := env.GetString("CLOUDINARY_CLOUD_NAME", "")
+	if name == "" {
+		return nil, fmt.Errorf("CLOUDINARY_CLOUD_NAME is not set")
+	}
+
+	c, err := cloudinary.Dial(fmt.Sprintf(
+		"cloudinary://%s:%s@%s",
+		key,
+		secret,
+		name,
+	))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	service = &CDNService{
 		service: c,
 	}
 
-	return service
+	return service, nil
 }
 
 // CDNService is a Cloudinary concrete implementation of cdn.Interface

@@ -14,7 +14,6 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/cenkalti/backoff"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -73,25 +72,24 @@ func Conn(service string) *sql.DB {
 }
 
 // Open will initialize the database connection or raise an error.
-func (db *PG) Open(service string) {
+func (db *PG) Open(service string) error {
 	c, err := sql.Open("postgres", db.connectionString(service))
 	if err != nil {
-		log.WithError(err).Fatal(ErrUnableToParseDBConnection)
+		return ErrUnableToParseDBConnection
 	}
 
 	db.Conn = c
 
 	err = db.verifyConnection(service)
 	if err != nil {
-		log.WithError(err).Fatal(ErrUnableToConnectToDB)
+		return ErrUnableToConnectToDB
 	}
+	return nil
 }
 
 // verifyConnection pings the database to verify a connection is established. If the connection cannot be established,
 // it will retry with an exponential back off.
 func (db PG) verifyConnection(service string) error {
-	log.Infof("Attempting to connect to database: %s", db.logSafeConnectionString(service))
-
 	pingDB := func() error {
 		return db.Conn.Ping()
 	}
@@ -101,11 +99,8 @@ func (db PG) verifyConnection(service string) error {
 
 	err := backoff.Retry(pingDB, expBackoff)
 	if err != nil {
-		log.WithError(err).Warning(err)
 		return ErrUnableToConnectToDB
 	}
-
-	log.Info("Connected to database")
 
 	return nil
 }
@@ -123,7 +118,7 @@ func (db PG) connectionString(service string) string {
 		password,
 		env.GetString("DB_HOST", "localhost"),
 		env.GetString("DB_PORT", "5432"),
-		env.MustGetString("DB_NAME"),
+		env.GetString("DB_NAME", ""),
 		env.GetString("DB_SSL_MODE", "disable"),
 		service,
 	)

@@ -28,7 +28,7 @@ func TracerConfigFromEnv() (*TracerConfig, error) {
 		return nil, errors.Wrap(err, "Parse failed")
 	}
 	return &TracerConfig{
-		Name:              env.MustGetString("SERVICE_NAME"),
+		Name:              env.GetString("SERVICE_NAME", ""),
 		CollectorEndpoint: endpoint,
 	}, nil
 }
