@@ -3,33 +3,30 @@ package newrelic
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/HomesNZ/go-common/env"
 	"github.com/gorilla/mux"
 	newrelic "github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/sirupsen/logrus"
 )
 
 var (
-	app      *newrelic.Application
-	initOnce = sync.Once{}
+	app *newrelic.Application
 )
 
 type contextKey int
 
 var transactionKey contextKey = 0
 
-// InitNewRelic initializes the NewRelic configuration and panics if there is an
-// error.
-func InitNewRelic(appName string) {
+// InitNewRelic initializes the NewRelic configuration
+func InitNewRelic(appName string) error {
 	var err error
 	apiKey := env.GetString("NEWRELIC_API_KEY", "")
 	if apiKey == "" {
-		logrus.Info("Skipping New Relic initialization - NEWRELIC_API_KEY is empty")
-		return
+		return errors.New("NEWRELIC_API_KEY is required")
 	}
 	e := env.Env()
 	if e == "" {
@@ -41,9 +38,9 @@ func InitNewRelic(appName string) {
 		newrelic.ConfigLicense(apiKey),
 	)
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to initialize New Relic")
 	}
-	logrus.Info("New Relic initialized successfully")
+	return err
 }
 
 // NewContext returns a new context with txn added as a value
@@ -73,6 +70,12 @@ func Middleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func Shutdown(duration time.Duration) {
+	if app != nil {
+		app.Shutdown(duration)
+	}
 }
 
 func routeName(r *http.Request) string {
