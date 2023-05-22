@@ -3,10 +3,11 @@ package newrelic
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/HomesNZ/go-common/env"
 	"github.com/gorilla/mux"
@@ -21,8 +22,8 @@ type contextKey int
 
 var transactionKey contextKey = 0
 
-// InitNewRelic initializes the NewRelic configuration
-func New(appName string) error {
+// NewFromEnv initializes the NewRelic configuration
+func NewFromEnv(appName string) error {
 	var err error
 	apiKey := env.GetString("NEWRELIC_API_KEY", "")
 	if apiKey == "" {
@@ -73,8 +74,8 @@ func Middleware(next http.Handler) http.Handler {
 }
 
 func Shutdown(duration time.Duration) {
-	if app != nil {
-		app.Shutdown(duration)
+	if App != nil {
+		App.Shutdown(duration)
 	}
 }
 
