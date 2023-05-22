@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	app *newrelic.Application
+	App *newrelic.Application
 )
 
 type contextKey int
@@ -22,7 +22,7 @@ type contextKey int
 var transactionKey contextKey = 0
 
 // InitNewRelic initializes the NewRelic configuration
-func InitNewRelic(appName string) error {
+func New(appName string) error {
 	var err error
 	apiKey := env.GetString("NEWRELIC_API_KEY", "")
 	if apiKey == "" {
@@ -33,7 +33,7 @@ func InitNewRelic(appName string) error {
 		e = "development"
 	}
 
-	app, err = newrelic.NewApplication(
+	App, err = newrelic.NewApplication(
 		newrelic.ConfigAppName(fmt.Sprintf("%s-%s", appName, e)),
 		newrelic.ConfigLicense(apiKey),
 	)
@@ -58,9 +58,9 @@ func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
 // chain.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app != nil {
+		if App != nil {
 			name := routeName(r)
-			txn := app.StartTransaction(name)
+			txn := App.StartTransaction(name)
 			defer txn.End()
 			for k, v := range r.URL.Query() {
 				txn.AddAttribute(k, strings.Join(v, ","))
