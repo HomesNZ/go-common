@@ -8,13 +8,13 @@ import (
 	"sync"
 
 	"github.com/HomesNZ/go-common/env"
-	"github.com/sirupsen/logrus"
 	"github.com/gorilla/mux"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	app      newrelic.Application
+	app      *newrelic.Application
 	initOnce = sync.Once{}
 )
 
@@ -35,8 +35,11 @@ func InitNewRelic(appName string) {
 	if e == "" {
 		e = "development"
 	}
-	config := newrelic.NewConfig(fmt.Sprintf("%s-%s", appName, e), apiKey)
-	app, err = newrelic.NewApplication(config)
+
+	app, err = newrelic.NewApplication(
+		newrelic.ConfigAppName(fmt.Sprintf("%s-%s", appName, e)),
+		newrelic.ConfigLicense(apiKey),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -54,31 +57,19 @@ func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
 	return txn, ok
 }
 
-// StartTransaction begins a Transaction.
-// * The Transaction should only be used in a single goroutine.
-// * This method never returns nil.
-// * If an http.Request is provided then the Transaction is considered
-//   a web transaction.
-// * If an http.ResponseWriter is provided then the Transaction can be
-//   used in its place.  This allows instrumentation of the response
-//   code and response headers.
-func StartTransaction(name string, w http.ResponseWriter, r *http.Request) newrelic.Transaction {
-	return app.StartTransaction(name, w, r)
-}
-
 // Middleware is an easy way to implement NewRelic as middleware in an Alice
 // chain.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app != nil {
 			name := routeName(r)
-			txn := StartTransaction(name, w, r)
+			txn := app.StartTransaction(name)
+			defer txn.End()
 			for k, v := range r.URL.Query() {
 				txn.AddAttribute(k, strings.Join(v, ","))
 			}
-			defer txn.End()
-			w = txn
-			r = r.WithContext(NewContext(r.Context(), txn))
+			w = txn.SetWebResponse(w)
+			r = newrelic.RequestWithTransactionContext(r, txn)
 		}
 		next.ServeHTTP(w, r)
 	})
@@ -93,8 +84,8 @@ func routeName(r *http.Request) string {
 		return n
 	}
 	if n, _ := route.GetPathTemplate(); n != "" {
-		return n
+		return r.Method + " " + n
 	}
 	n, _ := route.GetHostTemplate()
-	return n
+	return r.Method + " " + n
 }
