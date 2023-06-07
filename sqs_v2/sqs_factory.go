@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/sirupsen/logrus"
 )
 
 type Logger interface {
@@ -27,17 +26,17 @@ func WithLogger(logger Logger) Options {
 	}
 }
 
-func NewFromEnv(ctx context.Context, log *logrus.Entry, handler MessageHandler, options ...Options) (*Consumer, error) {
+func NewFromEnv(ctx context.Context, handler MessageHandler, options ...Options) (*Consumer, error) {
 	config, err := config.NewFromEnv()
 	if err != nil {
 		return nil, err
 	}
 
-	return newConsumer(ctx, config, log, handler, options...)
+	return newConsumer(ctx, config, handler, options...)
 }
 
 // New returns a pointer to a fresh Consumer instance.
-func newConsumer(ctx context.Context, config *config.Config, log *logrus.Entry, handler MessageHandler, options ...Options) (*Consumer, error) {
+func newConsumer(ctx context.Context, config *config.Config, handler MessageHandler, options ...Options) (*Consumer, error) {
 	cfg, err := awsCfg.LoadDefaultConfig(ctx, awsCfg.WithRegion(config.Region), awsCfg.WithRetryer(func() aws.Retryer {
 		return retry.AddWithMaxAttempts(retry.NewStandard(), maxRetries)
 	}))
