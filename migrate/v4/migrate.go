@@ -10,11 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/HomesNZ/go-common/redis"
-
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/sirupsen/logrus"
 )
 
 type migrationType string
@@ -37,14 +34,14 @@ var (
 )
 
 type Migrator interface {
-	Lock(key string, log logrus.FieldLogger) (bool, error)
+	Lock(key string) (bool, error)
 	Unlock(key string) error
 	MigrationTableExists(ctx context.Context) (bool, error)
 	CreateMigrationsTable(ctx context.Context) error
-	Migrate(ctx context.Context, log logrus.FieldLogger) error
-	Rollback(ctx context.Context, log logrus.FieldLogger) error
-	RollbackN(ctx context.Context, n int, log logrus.FieldLogger) error
-	RollbackAll(ctx context.Context, log logrus.FieldLogger) error
+	Migrate(ctx context.Context) error
+	Rollback(ctx context.Context) error
+	RollbackN(ctx context.Context, n int) error
+	RollbackAll(ctx context.Context) error
 	Migrations(status int) []*Migration
 }
 
@@ -54,7 +51,7 @@ type migrator struct {
 	dbAdapter      Postgres
 	migrations     map[uint64]*Migration
 	logger         Logger
-	Redis          redis.Cache
+	Redis          Redis
 }
 
 type Logger interface {
@@ -64,7 +61,13 @@ type Logger interface {
 	Fatalf(format string, v ...interface{})
 }
 
-func (m *migrator) Lock(key string, log logrus.FieldLogger) (bool, error) {
+type Redis interface {
+	Exists(key string) (bool, error)
+	SetExpiry(key string, value interface{}, expirationTime int) error
+	Delete(key string) (string, error)
+}
+
+func (m *migrator) Lock(key string) (bool, error) {
 	reply, err := m.Redis.Exists(key)
 	if err != nil {
 		return false, err
@@ -117,12 +120,12 @@ func (m *migrator) CreateMigrationsTable(ctx context.Context) error {
 }
 
 // Returns a new migrator.
-func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis redis.Cache) (Migrator, error) {
+func NewMigrator(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis Redis) (Migrator, error) {
 	return NewMigratorWithLogger(ctx, db, adapter, migrationsPath, redis, log.New(os.Stderr, "[gomigrate] ", log.LstdFlags))
 }
 
 // Returns a new migrator with the specified logger.
-func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis redis.Cache, logger Logger) (Migrator, error) {
+func NewMigratorWithLogger(ctx context.Context, db *pgxpool.Pool, adapter Postgres, migrationsPath string, redis Redis, logger Logger) (Migrator, error) {
 	// Normalize the migrations path.
 	path := []byte(migrationsPath)
 	pathLength := len(path)
@@ -332,21 +335,20 @@ func (m *migrator) applyMigration(ctx context.Context, migration *Migration, mTy
 }
 
 // Applies all inactive migrations.
-func (m *migrator) Migrate(ctx context.Context, log logrus.FieldLogger) error {
-
+func (m *migrator) Migrate(ctx context.Context) error {
 	if m.Redis != nil {
-		free, err := m.Lock(m.dbAdapter.SchemaName+migrationLock, log)
+		free, err := m.Lock(m.dbAdapter.SchemaName + migrationLock)
 		if err != nil {
 			return err
 		}
 		if !free {
-			log.Info("locked")
+			m.logger.Print("locked")
 			return nil
 		}
 		defer func() {
 			err := m.Unlock(m.dbAdapter.SchemaName + migrationLock)
 			if err != nil {
-				log.WithError(err).Error()
+				m.logger.Printf("%+v", err)
 			}
 		}()
 	}
@@ -360,15 +362,15 @@ func (m *migrator) Migrate(ctx context.Context, log logrus.FieldLogger) error {
 }
 
 // Rolls back the last migration.
-func (m *migrator) Rollback(ctx context.Context, log logrus.FieldLogger) error {
-	return m.RollbackN(ctx, 1, log)
+func (m *migrator) Rollback(ctx context.Context) error {
+	return m.RollbackN(ctx, 1)
 }
 
 // Rolls back N migrations.
-func (m *migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger) error {
+func (m *migrator) RollbackN(ctx context.Context, n int) error {
 
 	if m.Redis != nil {
-		free, err := m.Lock(m.dbAdapter.SchemaName+rollbackLock, log)
+		free, err := m.Lock(m.dbAdapter.SchemaName + rollbackLock)
 		if err != nil {
 			return err
 		}
@@ -378,7 +380,7 @@ func (m *migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger)
 		defer func() {
 			err := m.Unlock(m.dbAdapter.SchemaName + rollbackLock)
 			if err != nil {
-				log.WithError(err).Error()
+				m.logger.Printf("%+v", err)
 			}
 		}()
 	}
@@ -404,7 +406,7 @@ func (m *migrator) RollbackN(ctx context.Context, n int, log logrus.FieldLogger)
 }
 
 // Rolls back all migrations.
-func (m *migrator) RollbackAll(ctx context.Context, log logrus.FieldLogger) error {
+func (m *migrator) RollbackAll(ctx context.Context) error {
 	migrations := m.Migrations(Active)
-	return m.RollbackN(ctx, len(migrations), log)
+	return m.RollbackN(ctx, len(migrations))
 }
