@@ -27,7 +27,7 @@ func NewFromEnv(ctx context.Context) (Service, error) {
 }
 
 func newService(ctx context.Context, cfg *config.Config) (Service, error) {
-	creds := awsCred.NewStaticCredentialsProvider(cfg.AccessKeyID, cfg.SecretAccessKey, "")
+	creds := awsCred.NewStaticCredentialsProvider(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.SessionToken)
 	awsCfg, err := awsConfig.LoadDefaultConfig(ctx,
 		awsConfig.WithRegion(cfg.Region),
 		awsConfig.WithCredentialsProvider(creds),
