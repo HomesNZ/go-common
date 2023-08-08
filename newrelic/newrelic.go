@@ -3,25 +3,27 @@ package newrelic
 import (
 	"context"
 	"fmt"
-	"github.com/HomesNZ/go-common/env"
-	"github.com/gorilla/mux"
-	newrelic "github.com/newrelic/go-agent"
-	"github.com/pkg/errors"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/HomesNZ/go-common/env"
+	"github.com/gorilla/mux"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 )
 
 var (
-	app newrelic.Application
+	App *newrelic.Application
 )
 
 type contextKey int
 
 var transactionKey contextKey = 0
 
-// InitNewRelic initializes the NewRelic configuration
-func InitNewRelic(appName string) error {
+// NewFromEnv initializes the NewRelic configuration
+func NewFromEnv(appName string) error {
 	var err error
 	apiKey := env.GetString("NEWRELIC_API_KEY", "")
 	if apiKey == "" {
@@ -31,8 +33,11 @@ func InitNewRelic(appName string) error {
 	if e == "" {
 		e = "development"
 	}
-	config := newrelic.NewConfig(fmt.Sprintf("%s-%s", appName, e), apiKey)
-	app, err = newrelic.NewApplication(config)
+
+	App, err = newrelic.NewApplication(
+		newrelic.ConfigAppName(fmt.Sprintf("%s-%s", appName, e)),
+		newrelic.ConfigLicense(apiKey),
+	)
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize New Relic")
 	}
@@ -50,39 +55,27 @@ func FromContext(ctx context.Context) (newrelic.Transaction, bool) {
 	return txn, ok
 }
 
-// StartTransaction begins a Transaction.
-//   - The Transaction should only be used in a single goroutine.
-//   - This method never returns nil.
-//   - If an http.Request is provided then the Transaction is considered
-//     a web transaction.
-//   - If an http.ResponseWriter is provided then the Transaction can be
-//     used in its place.  This allows instrumentation of the response
-//     code and response headers.
-func StartTransaction(name string, w http.ResponseWriter, r *http.Request) newrelic.Transaction {
-	return app.StartTransaction(name, w, r)
-}
-
 // Middleware is an easy way to implement NewRelic as middleware in an Alice
 // chain.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app != nil {
+		if App != nil {
 			name := routeName(r)
-			txn := StartTransaction(name, w, r)
+			txn := App.StartTransaction(name)
+			defer txn.End()
 			for k, v := range r.URL.Query() {
 				txn.AddAttribute(k, strings.Join(v, ","))
 			}
-			defer txn.End()
-			w = txn
-			r = r.WithContext(NewContext(r.Context(), txn))
+			w = txn.SetWebResponse(w)
+			r = newrelic.RequestWithTransactionContext(r, txn)
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
 func Shutdown(duration time.Duration) {
-	if app != nil {
-		app.Shutdown(duration)
+	if App != nil {
+		App.Shutdown(duration)
 	}
 }
 
@@ -95,8 +88,8 @@ func routeName(r *http.Request) string {
 		return n
 	}
 	if n, _ := route.GetPathTemplate(); n != "" {
-		return n
+		return r.Method + " " + n
 	}
 	n, _ := route.GetHostTemplate()
-	return n
+	return r.Method + " " + n
 }
