@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/HomesNZ/go-common/env"
-	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 // ACL is policy for S3 assets.
@@ -19,6 +19,7 @@ type Config struct {
 	CloudfrontURL   string
 	AccessKeyID     string
 	SecretAccessKey string
+	SessionToken    string
 }
 
 func NewFromEnv() *Config {
@@ -30,6 +31,7 @@ func NewFromEnv() *Config {
 		CloudfrontURL:   env.GetString("CDN_URL", ""),
 		AccessKeyID:     env.GetString("AWS_ACCESS_KEY_ID", ""),
 		SecretAccessKey: env.GetString("AWS_SECRET_ACCESS_KEY", ""),
+		SessionToken:    env.GetString("AWS_SESSION_TOKEN", ""),
 	}
 
 	return cfg
