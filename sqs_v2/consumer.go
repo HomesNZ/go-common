@@ -9,7 +9,6 @@ import (
 
 	"github.com/HomesNZ/go-common/sqs_v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -21,27 +20,23 @@ const (
 type MessageHandler func(ctx context.Context, message []Message) error
 type Notifier func(err error, rawData ...interface{})
 
-type Consumer interface {
-	Start(ctx context.Context)
-	Stop()
-	SetNotifier(f Notifier)
-}
-
-type consumer struct {
+type Consumer struct {
 	client   *SQS
 	config   *config.Config
-	log      *logrus.Entry
 	handler  MessageHandler
 	doneChan chan bool
 	queueUrl *string
 	notifier Notifier
+	log      Logger
 }
 
-func (c *consumer) Start(ctx context.Context) {
+func (c *Consumer) Start(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 	wg.Add(c.config.MaxWorker)
 	c.doneChan = make(chan bool)
-	c.log.Info("now polling SQS queue:", c.config.QueueName)
+	if c.log == nil {
+		c.log.Infof("now polling SQS queue: %s", c.config.QueueName)
+	}
 	for i := 0; i < c.config.MaxWorker; i++ {
 		go c.worker(ctx, wg)
 	}
@@ -49,21 +44,25 @@ func (c *consumer) Start(ctx context.Context) {
 
 // Stop sends true to the doneChan, which stops the long polling process. Has to
 // wait for the current poll to complete before the polling is stopped.
-func (c consumer) Stop() {
-	c.log.Info("stopping polling of SQS queue:", c.config.QueueName)
+func (c *Consumer) Stop() {
+	if c.log == nil {
+		c.log.Infof("stopping polling of SQS queue: %s", c.config.QueueName)
+	}
 	c.doneChan <- true
 }
 
-func (c *consumer) SetNotifier(f Notifier) {
+func (c *Consumer) SetNotifier(f Notifier) {
 	c.notifier = f
 }
 
-func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
+func (c *Consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-c.doneChan:
 			close(c.doneChan)
-			c.log.Info("stopped polling SQS queue:", c.config.QueueName)
+			if c.log == nil {
+				c.log.Infof("stopped polling SQS queue: %s", c.config.QueueName)
+			}
 			return
 		//case <-ctx.Done():
 		//	c.log.Info("stopped polling SQS queue:", c.config.QueueName)
@@ -75,7 +74,9 @@ func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 				if c.notifier != nil {
 					c.notifier(errors.New(msg))
 				}
-				c.log.WithError(err).Error(msg)
+				if c.log == nil {
+					c.log.Error(err, msg)
+				}
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
 				continue
 			}
@@ -89,7 +90,7 @@ func (c *consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
-func (c consumer) async(ctx context.Context, msgs []types.Message) {
+func (c *Consumer) async(ctx context.Context, msgs []types.Message) {
 	wg := &sync.WaitGroup{}
 	go func(m []types.Message) {
 		defer wg.Done()
@@ -98,25 +99,24 @@ func (c consumer) async(ctx context.Context, msgs []types.Message) {
 	wg.Wait()
 }
 
-func (c consumer) consume(ctx context.Context, msgs []types.Message) {
+func (c *Consumer) consume(ctx context.Context, msgs []types.Message) {
 	messages := make([]Message, 0, len(msgs))
 	for _, m := range msgs {
 		msg, err := newMessage(m)
-		if err != nil {
-			c.log.WithError(err).Error("failed to convert message")
+		if err != nil && c.log != nil {
+			c.log.Error(err, "failed to convert message")
 		}
 		messages = append(messages, msg)
 	}
-	if err := c.handler(ctx, messages); err != nil {
+	if err := c.handler(ctx, messages); err != nil && c.log != nil {
 		// Failed to handle message, do nothing. It's the responsibility of the
 		// handler to communicate the failure via logs/bugsnag etc.
-		c.log.Debug("failed to handle message")
-		c.log.WithError(err).Error(err)
+		c.log.Error(err, "failed to handle message")
 	}
 
 	for _, msg := range msgs {
-		if err := c.client.Delete(ctx, c.config.QueueName, *msg.ReceiptHandle); err != nil {
-			c.log.WithError(err).Error(err)
+		if err := c.client.Delete(ctx, c.config.QueueName, *msg.ReceiptHandle); err != nil && c.log != nil {
+			c.log.Error(err, "failed to delete message")
 		}
 	}
 }
