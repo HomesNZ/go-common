@@ -3,8 +3,9 @@ package logger
 import (
 	"context"
 	"io"
+	"os"
 
-	"github.com/bugsnag/bugsnag-go/v2"
+	bugsnag "github.com/bugsnag/bugsnag-go/v2"
 	bugsnagErrors "github.com/bugsnag/bugsnag-go/v2/errors"
 )
 
@@ -23,6 +24,24 @@ type Option func(*Config) error
 func WithLevel(level string) Option {
 	return func(l *Config) error {
 		l.level = toLevel(level)
+		return nil
+	}
+}
+
+// WithEnv sets the log level based on the environment. Defaults to "debug".
+func WithEnv() Option {
+	return func(l *Config) error {
+		env := os.Getenv("ENV")
+		if env == "production" || env == "prod" {
+			l.level = LevelInfo
+		} else {
+			l.level = LevelDebug
+		}
+		level := os.Getenv("LOG_LEVEL")
+		if level != "" {
+			l.level = toLevel(level)
+		}
+
 		return nil
 	}
 }
