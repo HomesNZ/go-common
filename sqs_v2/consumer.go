@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"sync"
 	"time"
 
@@ -100,6 +101,15 @@ func (c *Consumer) async(ctx context.Context, msgs []types.Message) {
 }
 
 func (c *Consumer) consume(ctx context.Context, msgs []types.Message) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if ctx.Value("trace_id") == nil {
+		traceId := uuid.New().String()
+		ctx = context.WithValue(ctx, "trace_id", traceId)
+	}
+
 	messages := make([]Message, 0, len(msgs))
 	for _, m := range msgs {
 		msg, err := newMessage(m)

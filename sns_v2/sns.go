@@ -7,6 +7,7 @@ import (
 
 	"github.com/HomesNZ/go-common/sns_v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/google/uuid"
 )
 
 type Service interface {
@@ -23,6 +24,15 @@ type service struct {
 }
 
 func (s *service) Send(ctx context.Context, eventType string, message interface{}) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if ctx.Value("trace_id") == nil {
+		traceId := uuid.New().String()
+		ctx = context.WithValue(ctx, "trace_id", traceId)
+	}
+
 	topicArn, err := s.topic(ctx, eventType)
 	if err != nil {
 		return err
