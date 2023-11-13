@@ -10,22 +10,24 @@ import (
 )
 
 var (
-	RequestHeaderOriginEnv string
-	mapRequestHeaderOrigin = make(map[string]bool)
+	requestHeaderOriginEnv string
+	mapRequestHeaderOrigin = make(map[string]struct{})
 )
-
-func init() {
-	RequestHeaderOriginEnv = env.GetString("REQUEST_HEADER_ORIGIN", "")
-	for _, value := range strings.Split(RequestHeaderOriginEnv, ";") {
-		mapRequestHeaderOrigin[value] = true
-	}
-}
 
 type LambdaHandler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
 func AddResponseHeaders(next LambdaHandler) LambdaHandler {
+	requestHeaderOriginEnv = env.GetString("REQUEST_HEADER_ORIGIN", "")
+	if requestHeaderOriginEnv != "" {
+		origins := strings.Split(requestHeaderOriginEnv, ";")
+		for _, value := range origins {
+			origin := strings.TrimSpace(value)
+			mapRequestHeaderOrigin[origin] = struct{}{}
+		}
+	}
+
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		if RequestHeaderOriginEnv == "" {
+		if requestHeaderOriginEnv == "" {
 			return events.APIGatewayProxyResponse{}, errors.New("REQUEST_HEADER_ORIGIN is empty")
 		}
 
@@ -36,13 +38,18 @@ func AddResponseHeaders(next LambdaHandler) LambdaHandler {
 
 		requestHeaderOrigin := request.Headers["origin"]
 		if _, ok := mapRequestHeaderOrigin[requestHeaderOrigin]; ok {
-			RequestHeaderOriginEnv = requestHeaderOrigin
+			res.Headers["Access-Control-Allow-Origin"] = requestHeaderOrigin
+			res.Headers["Access-Control-Allow-Credentials"] = "true"
+		} else {
+			return res, errors.New("origin is not allowed")
 		}
 
-		res.Headers = map[string]string{
-			"Access-Control-Allow-Origin":      RequestHeaderOriginEnv,
-			"Access-Control-Allow-Credentials": "true",
-		}
 		return res, nil
 	}
+}
+
+// ResetRequestHeaderOriginEnv resets the RequestHeaderOriginEnv variable, it is used for testing
+func ResetRequestHeaderOriginEnv() {
+	requestHeaderOriginEnv = ""
+	mapRequestHeaderOrigin = make(map[string]struct{})
 }
