@@ -40,8 +40,6 @@ func AddResponseHeaders(next LambdaHandler) LambdaHandler {
 		if _, ok := mapRequestHeaderOrigin[requestHeaderOrigin]; ok {
 			res.Headers["Access-Control-Allow-Origin"] = requestHeaderOrigin
 			res.Headers["Access-Control-Allow-Credentials"] = "true"
-		} else {
-			return res, errors.New("origin is not allowed")
 		}
 
 		return res, nil
