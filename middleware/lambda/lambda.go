@@ -38,6 +38,9 @@ func AddResponseHeaders(next LambdaHandler) LambdaHandler {
 
 		requestHeaderOrigin := request.Headers["origin"]
 		if _, ok := mapRequestHeaderOrigin[requestHeaderOrigin]; ok {
+			if res.Headers == nil {
+				res.Headers = make(map[string]string)
+			}
 			res.Headers["Access-Control-Allow-Origin"] = requestHeaderOrigin
 			res.Headers["Access-Control-Allow-Credentials"] = "true"
 		}
