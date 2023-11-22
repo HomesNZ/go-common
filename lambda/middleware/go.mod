@@ -1,4 +1,4 @@
-module github.com/HomesNZ/go-common/middleware/lambda
+module github.com/HomesNZ/go-common/lambda/middleware
 
 go 1.20
 
