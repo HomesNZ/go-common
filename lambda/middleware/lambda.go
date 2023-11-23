@@ -2,7 +2,6 @@ package middleware_lambda
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/HomesNZ/go-common/env"
@@ -16,7 +15,7 @@ var (
 
 type LambdaHandler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
-func AddResponseHeaders(next LambdaHandler) LambdaHandler {
+func WithCors(next LambdaHandler) LambdaHandler {
 	requestHeaderOriginEnv = env.GetString("REQUEST_HEADER_ORIGIN", "")
 	if requestHeaderOriginEnv != "" {
 		origins := strings.Split(requestHeaderOriginEnv, ";")
@@ -27,21 +26,23 @@ func AddResponseHeaders(next LambdaHandler) LambdaHandler {
 	}
 
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		if requestHeaderOriginEnv == "" {
-			return events.APIGatewayProxyResponse{}, errors.New("REQUEST_HEADER_ORIGIN is empty")
-		}
-
 		res, err := next(ctx, request)
 		if err != nil {
 			return res, err
 		}
 
-		requestHeaderOrigin := request.Headers["origin"]
-		if _, ok := mapRequestHeaderOrigin[requestHeaderOrigin]; ok {
-			if res.Headers == nil {
-				res.Headers = make(map[string]string)
+		if res.Headers == nil {
+			res.Headers = make(map[string]string)
+		}
+
+		if len(mapRequestHeaderOrigin) > 0 {
+			requestHeaderOrigin := request.Headers["origin"]
+			if _, ok := mapRequestHeaderOrigin[requestHeaderOrigin]; ok {
+				res.Headers["Access-Control-Allow-Origin"] = requestHeaderOrigin
+				res.Headers["Access-Control-Allow-Credentials"] = "true"
 			}
-			res.Headers["Access-Control-Allow-Origin"] = requestHeaderOrigin
+		} else {
+			res.Headers["Access-Control-Allow-Origin"] = request.Headers["origin"]
 			res.Headers["Access-Control-Allow-Credentials"] = "true"
 		}
 

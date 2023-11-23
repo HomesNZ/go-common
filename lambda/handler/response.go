@@ -17,7 +17,7 @@ type logger interface {
 func ErrorHandler(log logger, internalError error) func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Error(context.TODO(), internalError.Error())
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		return events.APIGatewayProxyResponse{StatusCode: 500}, errors.Wrap(internalError, "internal error")
+		return SendError(http.StatusInternalServerError, internalError)
 	}
 }
 
@@ -26,7 +26,7 @@ type Response struct {
 	Message string `json:"message,omitempty"`
 }
 
-func SendError(status int, err error) (*events.APIGatewayProxyResponse, error) {
+func SendError(status int, err error) (events.APIGatewayProxyResponse, error) {
 	var statusCode int
 	if status == 0 || status >= 600 || status < 100 {
 		statusCode = http.StatusInternalServerError
@@ -40,24 +40,22 @@ func SendError(status int, err error) (*events.APIGatewayProxyResponse, error) {
 	}
 	body, _ := json.Marshal(responseBody)
 
-	return &events.APIGatewayProxyResponse{
+	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		StatusCode: statusCode,
 		Body:       string(body),
 	}, nil
 }
 
-func Send(request events.APIGatewayProxyRequest, statusCode int, data any) (*events.APIGatewayProxyResponse, error) {
+func Send(request events.APIGatewayProxyRequest, statusCode int, data any) (events.APIGatewayProxyResponse, error) {
 	body, err := json.Marshal(data)
 	if err != nil {
 		return SendError(http.StatusInternalServerError, errors.Wrap(err, "failed to marshal response body"))
 	}
 
-	return &events.APIGatewayProxyResponse{
+	return events.APIGatewayProxyResponse{
 		Headers: map[string]string{
-			"Access-Control-Allow-Origin":      request.Headers["origin"],
-			"Access-Control-Allow-Credentials": "true",
-			"Content-Type":                     "application/json",
+			"Content-Type": "application/json",
 		},
 		StatusCode: statusCode,
 		Body:       string(body),
