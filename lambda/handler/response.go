@@ -52,10 +52,11 @@ func Send(request events.APIGatewayProxyRequest, statusCode int, data any) (even
 	if err != nil {
 		return SendError(http.StatusInternalServerError, errors.Wrap(err, "failed to marshal response body"))
 	}
-
 	return events.APIGatewayProxyResponse{
 		Headers: map[string]string{
-			"Content-Type": "application/json",
+			"Content-Type":                     "application/json",
+			"Access-Control-Allow-Origin":      request.Headers["origin"],
+			"Access-Control-Allow-Credentials": "true",
 		},
 		StatusCode: statusCode,
 		Body:       string(body),

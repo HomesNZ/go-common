@@ -1,4 +1,4 @@
-package middleware_lambda_test
+package middleware_test
 
 import (
 	"context"

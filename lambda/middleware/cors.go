@@ -1,4 +1,4 @@
-package middleware_lambda
+package middleware
 
 import (
 	"context"
@@ -15,7 +15,7 @@ var (
 
 type LambdaHandler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
-func WithCors(next LambdaHandler) LambdaHandler {
+func Cors(next LambdaHandler) LambdaHandler {
 	requestHeaderOriginEnv = env.GetString("REQUEST_HEADER_ORIGIN", "")
 	if requestHeaderOriginEnv != "" {
 		origins := strings.Split(requestHeaderOriginEnv, ";")
