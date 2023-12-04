@@ -1,11 +1,11 @@
-package middleware_lambda_test
+package middleware_test
 
 import (
 	"context"
 	"os"
 	"testing"
 
-	lambda "github.com/HomesNZ/go-common/middleware/lambda"
+	lambda "github.com/HomesNZ/go-common/lambda/middleware"
 	"github.com/aws/aws-lambda-go/events"
 )
 
