@@ -41,7 +41,7 @@ func newMessage(sqsMessage types.Message) (Message, error) {
 	var msgTrace trace.Trace
 	if m.MessageAttributes != nil {
 		if traceAttr, ok := m.MessageAttributes[attrHomesTrace]; ok {
-			msgTrace = trace.LinkFromJSON(traceAttr.Value) // set a new event id to the trace
+			msgTrace = trace.FromJSON(traceAttr.Value) // only extract trace if it exists
 		} else {
 			msgTrace = trace.New()
 		}
