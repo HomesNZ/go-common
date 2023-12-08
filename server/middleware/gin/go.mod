@@ -1,4 +1,4 @@
-module github.com/HomesNZ/go-common/server/middleware
+module github.com/HomesNZ/go-common/server/middleware/gin
 
 go 1.21.5
 
