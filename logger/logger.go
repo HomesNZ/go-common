@@ -3,14 +3,14 @@ package logger
 import (
 	"context"
 	"fmt"
-	"github.com/HomesNZ/go-common/trace"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/HomesNZ/go-common/trace"
 
 	"github.com/pkg/errors"
 )
@@ -115,10 +115,10 @@ func new(cfg *Config) *Logger {
 	// be logged.
 	f := func(groups []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.SourceKey {
-			if source, ok := a.Value.Any().(*slog.Source); ok {
-				v := fmt.Sprintf("%s:%d", filepath.Base(source.File), source.Line)
-				return slog.Attr{Key: "file", Value: slog.StringValue(v)}
-			}
+			// if source, ok := a.Value.Any().(*slog.Source); ok {
+			// 	v := fmt.Sprintf("%s:%d", filepath.Base(source.File), source.Line)
+			// 	return slog.Attr{Key: "file", Value: slog.StringValue(v)}
+			// }
 		} else if a.Key == slog.TimeKey {
 			if t, ok := a.Value.Any().(time.Time); ok {
 				v := t.Format(time.RFC3339)
