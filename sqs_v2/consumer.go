@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/HomesNZ/go-common/trace"
 	"sync"
 	"time"
+
+	"github.com/HomesNZ/go-common/trace"
 
 	"github.com/HomesNZ/go-common/sqs_v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
@@ -130,7 +131,8 @@ func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
 			go func() {
 				homesMessage, err := newMessage(sqsMsg)
 				if err != nil && c.log != nil {
-					c.log.Error(timeoutCtx, "failed to convert message", "reason", err.Error())
+					c.log.Error(timeoutCtx, "failed to convert message", "error", err)
+					return
 				}
 
 				tracedCtx := trace.LinkCtxFromTrace(timeoutCtx, homesMessage.Trace)
@@ -138,10 +140,11 @@ func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
 				if err := c.handler(tracedCtx, homesMessage); err != nil && c.log != nil {
 					// Failed to handle message, do nothing. It's the responsibility of the
 					// handler to communicate the failure via logs/bugsnag etc.
-					c.log.Error(tracedCtx, "failed to handle message", "reason", err.Error())
+					c.log.Error(tracedCtx, "failed to handle message", "error", err)
+					return
 				}
 				if err := c.client.Delete(tracedCtx, c.config.QueueName, *sqsMsg.ReceiptHandle); err != nil && c.log != nil {
-					c.log.Error(tracedCtx, "failed to delete message", "reason", err.Error())
+					c.log.Error(tracedCtx, "failed to delete message", "error", err)
 				}
 
 				close(done)
@@ -153,7 +156,7 @@ func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
 			case <-timeoutCtx.Done():
 				if errors.Is(timeoutCtx.Err(), context.DeadlineExceeded) {
 					if c.log != nil {
-						c.log.Error(timeoutCtx, "timeout exceeded", "reason", timeoutCtx.Err().Error())
+						c.log.Error(timeoutCtx, "timeout exceeded", "error", timeoutCtx.Err())
 					}
 				}
 			}
