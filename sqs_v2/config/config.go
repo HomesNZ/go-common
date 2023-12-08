@@ -7,7 +7,7 @@ import (
 type Config struct {
 	QueueName            string // - is aws SQS queue name
 	Region               string // - is aws SQS region
-	MaxMessageHandleTime uint16 // - is the maximum time in seconds that a message is allowed to be handled
+	MaxMessageHandleTime int    // - is the maximum time in seconds that a message is allowed to be handled
 	MaxMsg               int32
 	MaxWorker            int
 	MaxHandlers          int

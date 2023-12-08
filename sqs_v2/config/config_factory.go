@@ -37,17 +37,16 @@ func NewFromEnv() (*Config, error) {
 		maxNumOfWorkers = maxWorker
 	}
 
-	var maxMessageHandleTime uint16
 	if maxHandleTime > 43200 { // 12 hours
-		maxMessageHandleTime = 43200
+		maxHandleTime = 43200
 	} else {
-		maxMessageHandleTime = uint16(maxHandleTime)
+		maxHandleTime = maxHandleTime
 	}
 
 	cfg := &Config{
 		QueueName:            queueName,
 		Region:               region,
-		MaxMessageHandleTime: maxMessageHandleTime,
+		MaxMessageHandleTime: maxHandleTime,
 		MaxMsg:               maxNumOfMessages,
 		MaxWorker:            maxNumOfWorkers,
 		MaxHandlers:          maxNumHandlers,
