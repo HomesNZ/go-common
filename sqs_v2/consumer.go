@@ -129,6 +129,7 @@ func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
 			done := make(chan struct{})
 
 			go func() {
+				defer close(done)
 				homesMessage, err := newMessage(sqsMsg)
 				if err != nil && c.log != nil {
 					c.log.Error(timeoutCtx, "failed to convert message", "error", err)
@@ -146,8 +147,6 @@ func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
 				if err := c.client.Delete(tracedCtx, c.config.QueueName, *sqsMsg.ReceiptHandle); err != nil && c.log != nil {
 					c.log.Error(tracedCtx, "failed to delete message", "error", err)
 				}
-
-				close(done)
 			}()
 
 			select {
