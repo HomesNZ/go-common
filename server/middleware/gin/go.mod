@@ -1,13 +1,13 @@
 module github.com/HomesNZ/go-common/server/middleware
 
-go 1.21.3
+go 1.21.5
 
 require (
+	github.com/HomesNZ/go-common/trace v0.0.0-20231208004350-0121c450f339
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.4.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.30.0
-	github.com/valyala/fastjson v1.6.4
 )
 
 require (
