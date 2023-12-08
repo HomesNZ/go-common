@@ -123,7 +123,7 @@ func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
 			// timeoutCtx is used to ensure that the message is handled within the configured time.
 			// If the handler takes longer than the configured time, it will be cancelled.
 			// This is to ensure that waiting messages are not blocked for indefinite time.
-			timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(c.config.MaxMessageHandleTime*time.Second)) //	default time is 10 minutes
+			timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(c.config.MaxMessageHandleTime)*time.Second) //	default time is 10 minutes
 			defer cancel()
 
 			done := make(chan struct{})
