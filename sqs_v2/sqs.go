@@ -15,7 +15,7 @@ type SQS struct {
 	timeout time.Duration
 }
 
-func (s SQS) Receive(ctx context.Context, queueURL string, waitTimeSeconds int32, maxMsg int32) ([]types.Message, error) {
+func (s *SQS) Receive(ctx context.Context, queueURL string, waitTimeSeconds int32, maxMsg int32) ([]types.Message, error) {
 	if maxMsg < 1 || maxMsg > 10 {
 		return nil, errors.New("msgMax valid values: 1 to 10")
 	}
@@ -33,7 +33,7 @@ func (s SQS) Receive(ctx context.Context, queueURL string, waitTimeSeconds int32
 	return res.Messages, nil
 }
 
-func (s SQS) Delete(ctx context.Context, queueURL, rcvHandle string) error {
+func (s *SQS) Delete(ctx context.Context, queueURL, rcvHandle string) error {
 	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 

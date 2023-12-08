@@ -1,5 +1,7 @@
 github.com/HomesNZ/go-common/env v0.0.0-20220321204950-fd2213bee46e h1:IrKev9devZrLdUm2tjYHSZab02cM4AdeU86GbOngzlc=
 github.com/HomesNZ/go-common/env v0.0.0-20220321204950-fd2213bee46e/go.mod h1:pIHSwiRTStF7wjTlv3qRlj7vosj5bN7mVmD3AMbPkiU=
+github.com/HomesNZ/go-common/env v0.0.0-20231204022035-3a6b4319b63d h1:wsxbuwPpKsEH6s7SAlTRewonMAaNzdw2+D0+UXIKPns=
+github.com/HomesNZ/go-common/env v0.0.0-20231204022035-3a6b4319b63d/go.mod h1:jvPcbMicGWqBvYqbtESAYYTzUAbjHUvsrVSdUdAs+PU=
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d h1:Byv0BzEl3/e6D5CLfI0j/7hiIEtvGVFPCZ7Ei2oq8iQ=
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/aws/aws-sdk-go-v2 v1.15.0/go.mod h1:lJYcuZZEHWNIb6ugJjbQY1fykdoobWbOS7kJYb4APoI=

@@ -3,6 +3,7 @@ package trace
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/google/uuid"
 )
 

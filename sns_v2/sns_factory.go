@@ -8,8 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
-func NewFromEnv(ctx context.Context) (Service, error) {
-
+func NewFromEnv(ctx context.Context) (*Service, error) {
 	config, err := config.NewFromEnv()
 	if err != nil {
 		return nil, err
@@ -22,5 +21,5 @@ func NewFromEnv(ctx context.Context) (Service, error) {
 
 	client := sns.NewFromConfig(cfg)
 
-	return &service{conn: client, config: config, topics: make(map[string]TopicArn)}, nil
+	return &Service{conn: client, config: config, topics: make(map[string]TopicArn)}, nil
 }
