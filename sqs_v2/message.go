@@ -13,34 +13,39 @@ const (
 )
 
 type Message struct {
-	Type             string
-	MessageID        string `json:"MessageId"`
-	TopicArn         string
-	Message          string
-	Timestamp        time.Time
-	SignatureVersion string
-	Signature        string
-	SigningCertURL   string
-	UnsubscribeURL   string
-	Trace            trace.Trace
+	Type              string
+	MessageID         string `json:"MessageId"`
+	TopicArn          string
+	Message           string
+	Timestamp         time.Time
+	SignatureVersion  string
+	Signature         string
+	SigningCertURL    string
+	UnsubscribeURL    string
+	Trace             trace.Trace
+	MessageAttributes map[string]TypeValue
 
 	sqsMessage types.Message
+}
+
+type TypeValue struct {
+	Type  string
+	Value string
 }
 
 func newMessage(sqsMessage types.Message) (Message, error) {
 	m := Message{
 		sqsMessage: sqsMessage,
 	}
+	err := json.Unmarshal([]byte(*sqsMessage.Body), &m)
 	var msgTrace trace.Trace
-	if sqsMessage.MessageAttributes != nil {
-		if traceAttr, ok := sqsMessage.MessageAttributes[attrHomesTrace]; ok {
-			msgTrace = trace.LinkFromJSON(*traceAttr.StringValue) // set a new event id to the trace
+	if m.MessageAttributes != nil {
+		if traceAttr, ok := m.MessageAttributes[attrHomesTrace]; ok {
+			msgTrace = trace.LinkFromJSON(traceAttr.Value) // set a new event id to the trace
 		} else {
 			msgTrace = trace.New()
 		}
 	}
 	m.Trace = msgTrace
-
-	err := json.Unmarshal([]byte(*sqsMessage.Body), &m)
 	return m, err
 }
