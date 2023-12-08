@@ -2,10 +2,11 @@ package env
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // ErrEnvVarNotFound is an error that is raised when an environment variable is missing.
@@ -161,4 +162,13 @@ func GetDuration(key string, defVal time.Duration) time.Duration {
 		return defVal
 	}
 	return duration
+}
+
+// DEPRECATED: DON'T USE THIS FUNCTION
+func MustGetString(key string) string {
+	val := Get(key)
+	if val == "" {
+		return ""
+	}
+	return val
 }

@@ -1,6 +1,6 @@
 module github.com/HomesNZ/go-common/trace
 
-go 1.21.0
+go 1.21.5
 
 require (
 	github.com/google/uuid v1.4.0

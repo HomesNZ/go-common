@@ -2,9 +2,10 @@ package trace
 
 import (
 	"context"
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestTrace(t *testing.T) {
