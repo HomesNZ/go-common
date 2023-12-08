@@ -3,6 +3,7 @@ package gin
 import (
 	"bytes"
 	"context"
+
 	"github.com/HomesNZ/go-common/trace"
 	"github.com/gin-gonic/gin"
 
@@ -26,7 +27,7 @@ type logger interface {
 // LoggerMiddleware
 // log - logger instance to use for logging
 // endpoints - endpoints to skip logging
-func LoggerMiddleware(log logger, endpoints ...string) gin.HandlerFunc {
+func Logger(log logger, endpoints ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		statusCode := 0
 		start := time.Now()
