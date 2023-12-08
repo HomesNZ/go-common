@@ -5,6 +5,7 @@ go 1.21.5
 require (
 	github.com/HomesNZ/go-common/env v0.0.0-20231204022035-3a6b4319b63d
 	github.com/HomesNZ/go-common/trace v0.0.0-20231208004350-0121c450f339
+	github.com/aws/aws-sdk-go-v2 v1.16.2
 	github.com/aws/aws-sdk-go-v2/config v1.15.3
 	github.com/aws/aws-sdk-go-v2/service/sns v1.17.1
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
@@ -13,7 +14,6 @@ require (
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/aws/aws-sdk-go-v2 v1.16.2 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.11.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.9 // indirect

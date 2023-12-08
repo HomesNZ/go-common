@@ -2,9 +2,10 @@ package sqs_v2
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/HomesNZ/go-common/trace"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"time"
 )
 
 const (
@@ -33,7 +34,7 @@ func newMessage(sqsMessage types.Message) (Message, error) {
 	var msgTrace trace.Trace
 	if sqsMessage.MessageAttributes != nil {
 		if traceAttr, ok := sqsMessage.MessageAttributes[attrHomesTrace]; ok {
-			msgTrace = trace.LinkFromJSON(traceAttr.StringValue) // set a new event id to the trace
+			msgTrace = trace.LinkFromJSON(*traceAttr.StringValue) // set a new event id to the trace
 		} else {
 			msgTrace = trace.New()
 		}

@@ -3,9 +3,11 @@ package sns_v2
 import (
 	"context"
 	"encoding/json"
-	"github.com/HomesNZ/go-common/trace"
-	"github.com/aws/aws-sdk-go-v2/service/sns/types"
 	"sync"
+
+	"github.com/HomesNZ/go-common/trace"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sns/types"
 
 	"github.com/HomesNZ/go-common/sns_v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -38,8 +40,8 @@ func (s *Service) Send(ctx context.Context, eventType string, message interface{
 
 	attrs := map[string]types.MessageAttributeValue{
 		attrHomesTrace: {
-			DataType:    types.DataTypeString,
-			StringValue: eventTrace.ToJSON(),
+			DataType:    aws.String("String"),
+			StringValue: aws.String(eventTrace.ToJSON()),
 		},
 	}
 
