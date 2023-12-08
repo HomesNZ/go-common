@@ -50,7 +50,7 @@ func Logger(log logger, endpoints ...string) gin.HandlerFunc {
 		if traceHeader == "" {
 			// set a new event id for the request and set it to the context
 			// or create a new trace if the trace is nil
-			tracedCtx := trace.LinkCtx(reqCtx)
+			tracedCtx := trace.LinkCtxFromCtx(reqCtx)
 			c.Request = c.Request.WithContext(tracedCtx)
 			reqCtx = tracedCtx
 		} else {
