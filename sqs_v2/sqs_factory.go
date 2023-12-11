@@ -12,11 +12,11 @@ import (
 )
 
 type Logger interface {
-	Info(msg string)
-	Infof(msg string, args ...interface{})
-	Error(err error, msg string)
+	Info(ctx context.Context, msg string, args ...any)
+	Error(ctx context.Context, msg string, args ...any)
+	Warn(ctx context.Context, msg string, args ...any)
+	Debug(ctx context.Context, msg string, args ...any)
 }
-
 type Options func(*Consumer)
 
 // WithLogger sets the logger for the consumer

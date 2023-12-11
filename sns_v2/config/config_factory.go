@@ -1,9 +1,14 @@
 package config
 
-import "github.com/HomesNZ/go-common/env"
+import (
+	"github.com/HomesNZ/go-common/env"
+)
 
 func NewFromEnv() (*Config, error) {
 	region := env.GetString("AWS_SQS_REGION", "")
+	if region == "" {
+		region = env.GetString("AWS_REGION", "")
+	}
 	messageStructure := env.GetString("AWS_SNS_MESSAGE_STRUCTURE", "json")
 	suffix := env.Env()
 	if suffix == "" {
