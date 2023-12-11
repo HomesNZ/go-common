@@ -13,9 +13,9 @@ var (
 	mapRequestHeaderOrigin = make(map[string]struct{})
 )
 
-type LambdaHandler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+type ApiGatewayHandler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
-func Cors(next LambdaHandler) LambdaHandler {
+func Cors(next ApiGatewayHandler) ApiGatewayHandler {
 	requestHeaderOriginEnv = env.GetString("REQUEST_HEADER_ORIGIN", "")
 	if requestHeaderOriginEnv != "" {
 		origins := strings.Split(requestHeaderOriginEnv, ";")
