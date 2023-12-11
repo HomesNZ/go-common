@@ -13,6 +13,11 @@ const (
 	attrHomesTrace = "homes_trace"
 )
 
+type TypeValue struct {
+	Type  string
+	Value string
+}
+
 type SQSHandler func(ctx context.Context, event interface{}) error
 
 func Trace(next SQSHandler) func(ctx context.Context, sqsEvent events.SQSEvent) error {
@@ -22,17 +27,18 @@ func Trace(next SQSHandler) func(ctx context.Context, sqsEvent events.SQSEvent) 
 		for idx := range records {
 			fmt.Printf("MessageAttributes: %+v\n", records[idx].MessageAttributes)
 			ev := struct {
-				Message string `json:"Message"`
+				Message           string               `json:"Message"`
+				MessageAttributes map[string]TypeValue `json:"MessageAttributes"`
 			}{}
 			err := json.Unmarshal([]byte(records[idx].Body), &ev)
 			if err != nil {
 				return err
 			}
-
+			fmt.Printf("ev: %+v\n", ev)
 			var msgTrace trace.Trace
-			if records[idx].MessageAttributes != nil {
-				if traceAttr, ok := records[idx].MessageAttributes[attrHomesTrace]; ok {
-					msgTrace = trace.FromJSON(*traceAttr.StringValue) // only extract trace if it exists
+			if ev.MessageAttributes != nil {
+				if traceAttr, ok := ev.MessageAttributes[attrHomesTrace]; ok {
+					msgTrace = trace.FromJSON(traceAttr.Value) // only extract trace if it exists
 				} else {
 					msgTrace = trace.New()
 				}
