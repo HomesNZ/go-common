@@ -72,14 +72,14 @@ func (s *service) topic(ctx context.Context, name string) (*string, error) {
 }
 
 func (s *service) getTopic(name string) (*string, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
 	topic, ok := s.topics[name]
+	s.mu.RUnlock()
 	return topic, ok
 }
 
 func (s *service) setTopic(name string, topic TopicArn) {
-	s.mu.RLock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.topics[name] = topic
-	s.mu.RUnlock()
 }
