@@ -13,16 +13,18 @@ type Config struct {
 	User              string
 	Name              string
 	Password          string
-	MaxConns          int
+	MaxConns          int // max number of connections in the pool. will define
 	Port              int
 	SearchPath        string
-	HealthCheckPeriod time.Duration // seconds
-	MaxConnIdleTime   time.Duration // minutes
+	HealthCheckPeriod time.Duration // seconds - how often to check health of the connection
+	MaxConnIdleTime   time.Duration // minutes - how long connection can be idle before it'll be closed
+	PingBeforeUse     bool          // it'll be used to check connection before use, if true and connection is not alive, it'll be reconnected
 }
 
 func NewFromEnv() *Config {
 	healthCheckPeriod := time.Duration(env.GetInt("DB_HEALTH_CHECK_PERIOD", 30)) * time.Second
 	maxConnIdleTime := time.Duration(env.GetInt("DB_MAX_CONN_IDLE_TIME", 5)) * time.Minute
+	pingBeforeUse := env.GetBool("DB_PING_BEFORE_USE", true)
 
 	cfg := &Config{
 		ServiceName:       env.GetString("SERVICE_NAME", ""),
@@ -35,6 +37,7 @@ func NewFromEnv() *Config {
 		SearchPath:        env.GetString("DB_SEARCH_PATH", ""),
 		HealthCheckPeriod: healthCheckPeriod,
 		MaxConnIdleTime:   maxConnIdleTime,
+		PingBeforeUse:     pingBeforeUse,
 	}
 
 	return cfg

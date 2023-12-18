@@ -3,6 +3,7 @@ package dbclient
 import (
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgx/v4"
 
 	"github.com/HomesNZ/go-common/dbclient/v4/config"
@@ -62,10 +63,12 @@ func connectionConfig(cfg *config.Config) (*pgxpool.Config, error) {
 	config.HealthCheckPeriod = cfg.HealthCheckPeriod
 	config.MaxConnIdleTime = cfg.MaxConnIdleTime
 
-	// BeforeAcquire is called before a connection is acquired from the pool.
-	// If it returns false, the connection is discarded and a new connection is acquired.
-	config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
-		return conn.Ping(ctx) == nil
+	if cfg.PingBeforeUse {
+		// BeforeAcquire is called before a connection is acquired from the pool.
+		// If it returns false, the connection is discarded and a new connection is acquired.
+		config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+			return conn.Ping(ctx) == nil
+		}
 	}
 
 	return config, nil
