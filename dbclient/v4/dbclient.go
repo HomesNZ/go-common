@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v4"
+
 	"github.com/HomesNZ/go-common/dbclient/v4/config"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
@@ -53,6 +55,21 @@ func connectionConfig(cfg *config.Config) (*pgxpool.Config, error) {
 	}
 
 	config, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		return nil, errors.Wrap(err, "db failed to parse config")
+	}
 	config.ConnConfig.PreferSimpleProtocol = true
-	return config, errors.Wrap(err, "DB failed to parse config")
+
+	config.HealthCheckPeriod = cfg.HealthCheckPeriod
+	config.MaxConnIdleTime = cfg.MaxConnIdleTime
+
+	if cfg.PingBeforeUse {
+		// BeforeAcquire is called before a connection is acquired from the pool.
+		// If it returns false, the connection is discarded and a new connection is acquired.
+		config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+			return conn.Ping(ctx) == nil
+		}
+	}
+
+	return config, nil
 }
