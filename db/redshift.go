@@ -71,6 +71,7 @@ func (db *RS) Open() error {
 	if err != nil {
 		return ErrUnableToConnectToDB
 	}
+	return nil
 }
 
 // verifyConnection pings the database to verify a connection is established. If the connection cannot be established,
