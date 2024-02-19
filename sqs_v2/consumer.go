@@ -112,6 +112,7 @@ func (c *Consumer) consume(ctx context.Context, msgs []types.Message) {
 		// Failed to handle message, do nothing. It's the responsibility of the
 		// handler to communicate the failure via logs/bugsnag etc.
 		c.log.Error(err, "failed to handle message")
+		return
 	}
 
 	for _, msg := range msgs {
