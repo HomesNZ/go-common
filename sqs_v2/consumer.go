@@ -103,9 +103,24 @@ func (c *Consumer) async(ctx context.Context, msgs []types.Message) {
 	wg.Wait()
 }
 
-func (c *Consumer) consume(ctx context.Context, messages []types.Message) {
+func (c *Consumer) consume(ctx context.Context, msgs []types.Message) {
 	if ctx == nil {
 		ctx = context.Background()
+	}
+
+	messages := make([]Message, 0, len(msgs))
+	for _, m := range msgs {
+		msg, err := newMessage(m)
+		if err != nil && c.log != nil {
+			c.log.Error(err, "failed to convert message")
+		}
+		messages = append(messages, msg)
+	}
+	if err := c.handler(ctx, messages); err != nil && c.log != nil {
+		// Failed to handle message, do nothing. It's the responsibility of the
+		// handler to communicate the failure via logs/bugsnag etc.
+		c.log.Error(err, "failed to handle message")
+		return
 	}
 
 	sem := make(chan struct{}, c.config.MaxHandlers)
