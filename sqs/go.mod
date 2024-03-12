@@ -1,6 +1,6 @@
 module github.com/HomesNZ/go-common/sqs
 
-go 1.15
+go 1.22.1
 
 require (
 	github.com/HomesNZ/go-common/env v0.0.0-20201208024358-01a507e2221c
