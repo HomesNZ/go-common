@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
@@ -26,6 +27,14 @@ func WithLogger(logger Logger) Options {
 	}
 }
 
+func WithCredentials(key, secret, session string) Options {
+	return func(c *Consumer) {
+		c.config.AwsKey = key
+		c.config.AwsSecret = secret
+		c.config.AwsSession = session
+	}
+}
+
 func NewFromEnv(ctx context.Context, handler MessageHandler, options ...Options) (*Consumer, error) {
 	config, err := config.NewFromEnv()
 	if err != nil {
@@ -37,11 +46,34 @@ func NewFromEnv(ctx context.Context, handler MessageHandler, options ...Options)
 
 // New returns a pointer to a fresh Consumer instance.
 func newConsumer(ctx context.Context, config *config.Config, handler MessageHandler, options ...Options) (*Consumer, error) {
-	cfg, err := awsCfg.LoadDefaultConfig(ctx, awsCfg.WithRegion(config.Region), awsCfg.WithRetryer(func() aws.Retryer {
-		return retry.AddWithMaxAttempts(retry.NewStandard(), maxRetries)
-	}))
-	if err != nil {
-		return nil, err
+	consumer := &Consumer{}
+	consumer.config = config
+
+	for _, opt := range options {
+		opt(consumer)
+	}
+	var cfg aws.Config
+	var err error
+	if consumer.config.AwsSession != "" && consumer.config.AwsKey != "" && consumer.config.AwsSecret != "" {
+		cfg, err = awsCfg.LoadDefaultConfig(ctx,
+			awsCfg.WithRegion(config.Region),
+			awsCfg.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(consumer.config.AwsKey, consumer.config.AwsSecret, consumer.config.AwsSession)),
+			awsCfg.WithRetryer(func() aws.Retryer {
+				return retry.AddWithMaxAttempts(retry.NewStandard(), maxRetries)
+			}))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		cfg, err = awsCfg.LoadDefaultConfig(ctx,
+			awsCfg.WithRegion(config.Region),
+			awsCfg.WithRetryer(func() aws.Retryer {
+				return retry.AddWithMaxAttempts(retry.NewStandard(), maxRetries)
+			}))
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	s := sqs.NewFromConfig(cfg)
@@ -58,16 +90,9 @@ func newConsumer(ctx context.Context, config *config.Config, handler MessageHand
 		timeout: time.Second * 5,
 	}
 
-	consumer := &Consumer{
-		client:   sqsClient,
-		config:   config,
-		queueUrl: resultURL.QueueUrl,
-		handler:  handler,
-	}
-
-	for _, opt := range options {
-		opt(consumer)
-	}
+	consumer.client = sqsClient
+	consumer.queueUrl = resultURL.QueueUrl
+	consumer.handler = handler
 
 	return consumer, nil
 }

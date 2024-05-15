@@ -5,10 +5,13 @@ import (
 )
 
 type Config struct {
-	QueueName string // - is aws SQS queue name
-	Region    string // - is aws SQS region
-	MaxMsg    int32
-	MaxWorker int
+	QueueName  string // - is aws SQS queue name
+	Region     string // - is aws SQS region
+	MaxMsg     int32
+	MaxWorker  int
+	AwsKey     string
+	AwsSecret  string
+	AwsSession string
 }
 
 func (c Config) Validate() error {
