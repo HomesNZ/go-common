@@ -34,7 +34,7 @@ func (c *Consumer) Start(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 	wg.Add(c.config.MaxWorker)
 	c.doneChan = make(chan bool)
-	if c.log == nil {
+	if c.log != nil {
 		c.log.Infof("now polling SQS queue: %s", c.config.QueueName)
 	}
 	for i := 0; i < c.config.MaxWorker; i++ {
@@ -45,7 +45,7 @@ func (c *Consumer) Start(ctx context.Context) {
 // Stop sends true to the doneChan, which stops the long polling process. Has to
 // wait for the current poll to complete before the polling is stopped.
 func (c *Consumer) Stop() {
-	if c.log == nil {
+	if c.log != nil {
 		c.log.Infof("stopping polling of SQS queue: %s", c.config.QueueName)
 	}
 	c.doneChan <- true
@@ -60,7 +60,7 @@ func (c *Consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 		select {
 		case <-c.doneChan:
 			close(c.doneChan)
-			if c.log == nil {
+			if c.log != nil {
 				c.log.Infof("stopped polling SQS queue: %s", c.config.QueueName)
 			}
 			return
@@ -74,7 +74,7 @@ func (c *Consumer) worker(ctx context.Context, wg *sync.WaitGroup) {
 				if c.notifier != nil {
 					c.notifier(errors.New(msg))
 				}
-				if c.log == nil {
+				if c.log != nil {
 					c.log.Error(err, msg)
 				}
 				time.Sleep(time.Duration(secondsToSleepOnError) * time.Second)
