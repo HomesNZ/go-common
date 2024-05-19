@@ -32,7 +32,7 @@ func NewFromEnv() *Config {
 		User:              env.GetString("DB_USER", "postgres"),
 		Name:              env.GetString("DB_NAME", ""),
 		Password:          env.GetString("DB_PASSWORD", ""),
-		MaxConns:          env.GetInt("DB_MAX_CONNECT", 3),
+		MaxConns:          env.GetInt("DB_MAX_CONNECT", 1),
 		Port:              env.GetInt("DB_PORT", 5432),
 		SearchPath:        env.GetString("DB_SEARCH_PATH", ""),
 		HealthCheckPeriod: healthCheckPeriod,
