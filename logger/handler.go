@@ -5,11 +5,13 @@ import (
 	"log/slog"
 )
 
+// logHandler wraps a slog.Handler and adds hook functionality.
 type logHandler struct {
 	handler slog.Handler
 	hooks   Hooks
 }
 
+// newLogHandler creates a new logHandler with the provided slog.Handler and Hooks.
 func newLogHandler(handler slog.Handler, hooks Hooks) *logHandler {
 	return &logHandler{
 		handler: handler,

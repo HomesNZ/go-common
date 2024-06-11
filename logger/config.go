@@ -54,7 +54,7 @@ func WithStackTrace() Option {
 	}
 }
 
-const skipFrames = 4
+const skipFrames = 4 // try to skip the top 4 frames of the stack trace, it's framework-related function calls
 
 // WithBugsnag adds a bugsnag hook to the logger. Defaults to false.
 // It sends messages to bugsnag when an error occurs with stack traces.
@@ -90,10 +90,18 @@ func WithWriter(w io.Writer) Option {
 // Hooks can be used to execute custom logic when a log event occurs (e.g. send an email).
 func WithHooks(events Hooks) Option {
 	return func(l *Config) error {
-		l.hooks.Error = append(l.hooks.Error, events.Error...)
-		l.hooks.Warn = append(l.hooks.Warn, events.Warn...)
-		l.hooks.Debug = append(l.hooks.Debug, events.Debug...)
-		l.hooks.Info = append(l.hooks.Info, events.Info...)
+		if events.Error != nil {
+			l.hooks.Error = append(l.hooks.Error, events.Error...)
+		}
+		if events.Warn != nil {
+			l.hooks.Warn = append(l.hooks.Warn, events.Warn...)
+		}
+		if events.Debug != nil {
+			l.hooks.Debug = append(l.hooks.Debug, events.Debug...)
+		}
+		if events.Info != nil {
+			l.hooks.Info = append(l.hooks.Info, events.Info...)
+		}
 		return nil
 	}
 }

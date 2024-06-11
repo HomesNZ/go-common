@@ -1,40 +1,11 @@
 package logger
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"strings"
 	"time"
 )
-
-type Level slog.Level
-
-const (
-	LevelDebug = Level(slog.LevelDebug)
-	LevelInfo  = Level(slog.LevelInfo)
-	LevelWarn  = Level(slog.LevelWarn)
-	LevelError = Level(slog.LevelError)
-)
-
-func (l Level) String() string {
-	return slog.Level(l).String()
-}
-
-func toLevel(l string) Level {
-	switch strings.ToLower(l) {
-	case "debug":
-		return LevelDebug
-	case "info":
-		return LevelInfo
-	case "warn":
-		return LevelWarn
-	case "error":
-		return LevelError
-	default:
-		return LevelInfo
-	}
-}
 
 type Record struct {
 	Time       time.Time
@@ -87,13 +58,4 @@ func toRecord(r slog.Record) Record {
 		Level:      Level(r.Level),
 		Attributes: atts,
 	}
-}
-
-type HookFunc func(ctx context.Context, r Record)
-
-type Hooks struct {
-	Debug []HookFunc
-	Info  []HookFunc
-	Warn  []HookFunc
-	Error []HookFunc
 }

@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/HomesNZ/go-common/trace"
@@ -18,9 +17,9 @@ import (
 
 var (
 	config *Config
-	once   sync.Once
 )
 
+// Logger provides methods to log at different levels.
 type Logger struct {
 	handler slog.Handler
 }
@@ -84,11 +83,17 @@ func (l *Logger) Error(ctx context.Context, msg string, args ...any) {
 // private
 // =============================================================================
 
+// write logs a message at the given level with the provided context and arguments.
 func (l *Logger) write(ctx context.Context, level Level, caller int, msg string, args ...any) {
 	slogLevel := slog.Level(level)
 
 	if !l.handler.Enabled(ctx, slogLevel) {
 		return
+	}
+
+	stackDepth := stackDepth()
+	if stackDepth < caller {
+		caller = stackDepth - 1 // Adjust to the maximum available frame if depth is less than caller
 	}
 
 	var pcs [1]uintptr
@@ -108,9 +113,19 @@ func (l *Logger) write(ctx context.Context, level Level, caller int, msg string,
 	}
 	r.Add(args...)
 
-	l.handler.Handle(ctx, r)
+	if err := l.handler.Handle(ctx, r); err != nil {
+		// TODO: think what to do
+	}
 }
 
+// stackDepth returns the depth of the current stack trace.
+func stackDepth() int {
+	var pcs [32]uintptr
+	n := runtime.Callers(0, pcs[:])
+	return n
+}
+
+// new creates a new Logger with the given configuration.
 func new(cfg *Config) *Logger {
 	// Convert the file name to just the name.ext when this key/value will
 	// be logged.
@@ -192,6 +207,19 @@ func errToValue(err error) slog.Value {
 	return slog.GroupValue(attr...)
 }
 
+// traceLines formats a stack trace into a slice of strings.
+//
+// It takes an errors.StackTrace as input, iterates through the frames, and formats each frame
+// into a string containing the function name and the file line where the function is located.
+// The function skips uninteresting consecutive runtime frames at the bottom of the trace.
+//
+// Parameters:
+//
+//	frames - A stack trace represented as a slice of errors.Frame.
+//
+// Returns:
+//
+//	A slice of strings where each string represents a formatted stack trace line.
 func traceLines(frames errors.StackTrace) []string {
 	traceLines := make([]string, len(frames))
 
@@ -205,7 +233,8 @@ func traceLines(frames errors.StackTrace) []string {
 		pc := uintptr(frames[i]) - 1
 		fn := runtime.FuncForPC(pc)
 		if fn == nil {
-			traceLines[i] = "unknown"
+			traceLines[i] = "unknown" // By setting the trace line to "unknown",
+			// it avoids a nil dereference error and ensures that the function continues to operate correctly.
 			skipping = false
 			continue
 		}
@@ -213,7 +242,8 @@ func traceLines(frames errors.StackTrace) []string {
 		name := fn.Name()
 
 		// Skip runtime frames that occur before the first frame of the
-		if skipping && strings.HasPrefix(name, "runtime.") {
+		if skipping && (strings.HasPrefix(name, "runtime.") /*|| strings.Contains(name, "vendor/") || strings.HasPrefix(name, "testing.")*/) {
+			// TODO: check if we want to skip anything else
 			skipped++
 			continue
 		} else {
