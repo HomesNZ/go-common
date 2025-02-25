@@ -44,7 +44,7 @@ func Middleware(logger *logrus.Entry) func(http.Handler) http.Handler {
 					"text_status":                           http.StatusText(status),
 					"took":                                  latency,
 					fmt.Sprintf("measure#%s.latency", name): latency.Nanoseconds(),
-				}).Info("Handled request")
+				}).Debug("Handled request")
 			}(time.Now())
 
 			var logged http.ResponseWriter = &loggedResponseWriter{
