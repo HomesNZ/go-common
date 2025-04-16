@@ -7,10 +7,13 @@ import (
 
 	"github.com/HomesNZ/go-common/sns_v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/sns/types"
+	"github.com/google/uuid"
 )
 
 type Service interface {
 	Send(ctx context.Context, eventType string, message interface{}) error
+	SendBatch(ctx context.Context, eventType string, messages []interface{}) error
 }
 
 type TopicArn *string
@@ -43,6 +46,51 @@ func (s *service) Send(ctx context.Context, eventType string, message interface{
 		TopicArn:         topicArn,
 		Message:          &m,
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) SendBatch(ctx context.Context, eventType string, messages []interface{}) error {
+	topic, err := s.topic(ctx, eventType)
+	if err != nil {
+		return err
+	}
+
+	if len(messages) == 0 {
+		return nil
+	}
+
+	var publishBatchRequestEntries []types.PublishBatchRequestEntry
+	for _, m := range messages {
+		messageObjBytes, err := json.Marshal(m)
+		if err != nil {
+			return err
+		}
+
+		messageWrapper := Message{string(messageObjBytes)}
+		messageBytes, err := json.Marshal(messageWrapper)
+		if err != nil {
+			return err
+		}
+		message := string(messageBytes)
+		id := uuid.NewString()
+		publishBatchRequestEntries = append(publishBatchRequestEntries, types.PublishBatchRequestEntry{
+			Id:               &id,
+			Message:          &message,
+			MessageStructure: &s.config.MessageStructure,
+		})
+	}
+
+	_, err = s.conn.PublishBatch(
+		ctx,
+		&sns.PublishBatchInput{
+			TopicArn:                   topic,
+			PublishBatchRequestEntries: publishBatchRequestEntries,
+		},
+	)
 	if err != nil {
 		return err
 	}
