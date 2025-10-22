@@ -112,9 +112,10 @@ func (p Point) Compare(c Point, diff float64) bool {
 }
 
 // Distance function returns the distance (in meters) between two points of
-//     a given longitude and latitude relatively accurately (using a spherical
-//     approximation of the Earth) through the Haversin Distance Formula for
-//     great arc distance on a sphere with accuracy for small distances
+//
+//	a given longitude and latitude relatively accurately (using a spherical
+//	approximation of the Earth) through the Haversin Distance Formula for
+//	great arc distance on a sphere with accuracy for small distances
 //
 // point coordinates are supplied in degrees and converted into rad. in the func
 //
@@ -149,4 +150,17 @@ func hsin(theta float64) float64 {
 func (p *Point) Round(sf int) {
 	p.Lat = extmath.Round(p.Lat, sf)
 	p.Long = extmath.Round(p.Long, sf)
+}
+
+// BuildPointGeometryQuery creates a parameterized SQL geometry query string for a point
+// to prevent SQL injection while working with PostGIS spatial functions.
+// Returns the SQL fragment and the parameter values in order: longitude, latitude, SRID
+func (point *Point) BuildPointGeometryQuery() (string, []interface{}) {
+	pointGeom := "ST_GeometryFromText('POINT(' || $1 || ' ' || $2 || ')', $3)"
+	if point.SRID != WGS84 {
+		pointGeom = "ST_Transform(" + pointGeom + ", 4326)"
+	}
+
+	params := []interface{}{point.Long, point.Lat, point.SRID}
+	return pointGeom, params
 }
