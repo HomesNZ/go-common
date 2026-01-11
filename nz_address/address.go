@@ -112,3 +112,15 @@ func (a Address) Display() string {
 func (a Address) DisplayWithPostcode() string {
 	return a.Display() + " " + strconv.Itoa(a.Postcode)
 }
+
+// Returns an address to the suburb level, for example: 1A Street Name, Suburb
+func (a Address) DisplayWithoutCity() string {
+	fullAddress := a.Display()
+	separator := ","
+	addressParts := strings.Split(fullAddress, separator)
+	if len(addressParts) > 0 {
+		return strings.Join(addressParts[:len(addressParts)-1], separator)
+	} else {
+		return ""
+	}
+}

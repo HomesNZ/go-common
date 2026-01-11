@@ -174,4 +174,25 @@ var _ = Describe("Address", func() {
 			Expect(input).To(Equal(expected))
 		})
 	})
+	Describe("DisplayWithoutCity", func() {
+		It("displays address without city", func() {
+			input := Address{
+				BuildingName:   "Homes House",
+				UnitType:       "UNIT",
+				UnitIdentifier: "5",
+				StreetNumber:   123,
+				StreetAlpha:    "B",
+				StreetName:     "CAMBRIDGE",
+				StreetType:     "TERRACE",
+				RDNumber:       "3a",
+				Suburb:         "BROOKLYN",
+				City:           "WELLINGTON",
+				Postcode:       1234,
+			}.DisplayWithoutCity()
+
+			expected := "Unit 5 Homes House, 123B Cambridge Terrace, Brooklyn, RD 3A"
+
+			Expect(input).To(Equal(expected))
+		})
+	})
 })
